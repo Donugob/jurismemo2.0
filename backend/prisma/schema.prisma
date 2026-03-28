@@ -1,0 +1,98 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  username        String   @unique
+  email           String   @unique
+  password        String
+  firstName       String?
+  lastName        String?
+  phoneNumber     String?
+  address         String?
+  level           String?  @default("100L")
+  profile_picture String?  @default("images/default_profile.jpg")
+  preferredCourses String?
+  createdAt       DateTime @default(now())
+  
+  grades          Grade[]
+  tasks           Task[]
+  electiveChoices ElectiveChoice[]
+  resources       Resource[] 
+}
+
+model Course {
+  id             Int      @id @default(autoincrement())
+  course_code    String
+  title          String
+  level          String
+  semester       String
+  credit_units   Int
+  isElective     Boolean  @default(false)
+  electiveGroup  String?
+  
+  grades         Grade[]
+
+  @@unique([course_code, level, semester])
+}
+
+model Grade {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  course_code String
+  grade       String
+  level       String
+  semester    String
+
+  user        User     @relation(fields: [user_id], references: [id])
+  course      Course   @relation(fields: [course_code, level, semester], references: [course_code, level, semester])
+}
+
+model ElectiveChoice {
+  id                 Int      @id @default(autoincrement())
+  user_id            Int
+  level              String
+  semester           String
+  elective_group     String
+  chosen_course_code String
+
+  user               User     @relation(fields: [user_id], references: [id])
+}
+
+model Task {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  task       String
+  due_date   String?
+  status     String   @default("pending") // "pending" or "completed"
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model Resource {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String?
+  file_path     String
+  resource_type String   
+  level         String   
+  uploaded_by   Int
+  upload_date   DateTime @default(now())
+
+  uploader      User     @relation(fields: [uploaded_by], references: [id])
+}
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  category    String   // 'Blog', 'News', 'Exam'
+  level       String?  // 'All', '100L', etc.
+  createdAt   DateTime @default(now())
+}
