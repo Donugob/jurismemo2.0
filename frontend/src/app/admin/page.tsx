@@ -16,7 +16,14 @@ import {
   BookOpen,
   ArrowLeft,
   GraduationCap,
-  CheckSquare
+  CheckSquare,
+  Plus,
+  RefreshCw,
+  MoreVertical,
+  ChevronRight,
+  ExternalLink,
+  Lock,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -38,6 +45,16 @@ export default function Admin() {
   // Insight Modal
   const [selectedUserInsight, setSelectedUserInsight] = useState<any>(null);
   const [isInsightLoading, setIsInsightLoading] = useState(false);
+
+  // News & Upload States
+  const [news, setNews] = useState<any[]>([]);
+  const [showNewsModal, setShowNewsModal] = useState(false);
+  const [newsForm, setNewsForm] = useState({ title: '', content: '', category: 'News', level: 'All' });
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ 
+    title: '', description: '', level: '100L', type: 'Lecture Notes', file: null as File | null 
+  });
 
   // Toast & Modal states
   const [toast, setToast] = useState<{ message: string; type: ToastType; isVisible: boolean }>({
@@ -67,7 +84,7 @@ export default function Admin() {
       const [statsData, usersData, resourcesData] = await Promise.all([
         adminApi.getStats(),
         adminApi.getUsers(),
-        dashboardApi.getResources() // Reuse existing
+        dashboardApi.getResources()
       ]);
       setStats(statsData);
       setUsers(usersData);
@@ -91,54 +108,16 @@ export default function Admin() {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
-    u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-    (u.firstName && u.firstName.toLowerCase().includes(userSearch.toLowerCase())) ||
-    (u.lastName && u.lastName.toLowerCase().includes(userSearch.toLowerCase()))
-  );
-
-  const [news, setNews] = useState<any[]>([]);
-  const [showNewsModal, setShowNewsModal] = useState(false);
-  const [newsForm, setNewsForm] = useState({ title: '', content: '', category: 'News', level: 'All' });
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadForm, setUploadForm] = useState({ 
-    title: '', description: '', level: '100L', type: 'Lecture Notes', file: null as File | null 
-  });
-  
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: <BarChart3 size={20} /> },
-    { id: 'users', label: 'Users', icon: <Users size={20} /> },
-    { id: 'resources', label: 'Resources', icon: <FileText size={20} /> },
-    { id: 'news', label: 'News & Alerts', icon: <BookOpen size={20} /> },
-  ];
-
-  const handleDeleteResource = async (id: number) => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Delete Resource?",
-      message: "Are you sure you want to remove this academic resource? This action cannot be undone.",
-      onConfirm: async () => {
-        try {
-          await adminApi.deleteResource(id);
-          fetchAdminData();
-          showToast('Resource deleted');
-        } catch (err) {
-          showToast('Failed to delete resource', 'error');
-        }
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
-      }
-    });
+  const fetchNews = async () => {
+    try {
+      const data = await dashboardApi.getNews();
+      setNews(data);
+    } catch (err) { console.error(err); }
   };
 
   useEffect(() => {
     if (activeTab === 'news') fetchNews();
   }, [activeTab]);
-
-  if (authLoading || (user && user.id !== 1)) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading Admin Panel...</div>;
-  }
 
   const handleFileUpload = async () => {
     if (!uploadForm.file) return showToast('Please select a file', 'info');
@@ -152,7 +131,6 @@ export default function Admin() {
     formData.append('type', uploadForm.type);
 
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/admin/resources/upload`;
-    console.log('Uploading to:', apiUrl);
 
     try {
       const response = await fetch(apiUrl, {
@@ -170,30 +148,18 @@ export default function Admin() {
         data = { error: await response.text() || 'Unknown server error' };
       }
       
-      if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
-      }
+      if (!response.ok) throw new Error(data.error || 'Upload failed');
       
       showToast('Resource uploaded successfully!');
       setShowUploadModal(false);
       setUploadForm({ title: '', description: '', level: '100L', type: 'Lecture Notes', file: null });
       fetchAdminData();
     } catch (err: any) {
-      console.error('Upload Error:', err);
       showToast(err.message || 'Upload failed', 'error');
     } finally {
       setUploading(false);
     }
   };
-
-  const fetchNews = async () => {
-    try {
-      const data = await dashboardApi.getNews();
-      setNews(data);
-    } catch (err) { console.error(err); }
-  };
-
-
 
   const handleCreateNews = async () => {
     try {
@@ -207,26 +173,113 @@ export default function Admin() {
     }
   };
 
-  const handleDeleteNews = async (id: number) => {
+  const handleDeleteResource = async (id: number) => {
     setConfirmModal({
       isOpen: true,
-      title: "Delete News?",
-      message: "Are you sure you want to remove this announcement?",
+      title: "Confirm Deletion",
+      message: "This action will permanently remove this academic resource. Proceed?",
       onConfirm: async () => {
         try {
-          await adminApi.deleteNews(id);
-          fetchNews();
-          showToast('News deleted');
+          await adminApi.deleteResource(id);
+          fetchAdminData();
+          showToast('Resource deleted');
         } catch (err) {
-          showToast('Failed to delete news', 'error');
+          showToast('Deletion failed', 'error');
         }
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
       }
     });
   };
 
+  const handleDeleteNews = async (id: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Remove Announcement?",
+      message: "This will remove the news item from all student dashboards.",
+      onConfirm: async () => {
+        try {
+          await adminApi.deleteNews(id);
+          fetchNews();
+          showToast('News deleted');
+        } catch (err) {
+          showToast('Deletion failed', 'error');
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
+    u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+    (u.firstName && u.firstName.toLowerCase().includes(userSearch.toLowerCase())) ||
+    (u.lastName && u.lastName.toLowerCase().includes(userSearch.toLowerCase()))
+  );
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'users', label: 'Students', icon: Users },
+    { id: 'resources', label: 'Resources', icon: FileText },
+    { id: 'news', label: 'Announcements', icon: BookOpen },
+  ];
+
+  if (authLoading || (user && user.id !== 1)) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-light font-serif text-primary">
+        <motion.div 
+          animate={{ opacity: [0.5, 1, 0.5] }} 
+          transition={{ duration: 2, repeat: Infinity }}
+          className="text-2xl italic"
+        >
+          Authenticating access...
+        </motion.div>
+      </div>
+    );
+  }
+
+  const PageHeader = ({ title, subtitle, actions }: any) => (
+    <div className="mb-16">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-primary/10 pb-12">
+        <div className="max-w-2xl">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }} 
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 text-secondary mb-4"
+          >
+            <Shield size={20} strokeWidth={1.5} />
+            <span className="text-xs font-bold tracking-[0.3em] uppercase">Administrative Protocol</span>
+          </motion.div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-6xl md:text-8xl font-serif text-primary leading-none mb-6"
+          >
+            {title}
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-primary/60 font-serif italic max-w-lg"
+          >
+            {subtitle}
+          </motion.p>
+        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex gap-4"
+        >
+          {actions}
+        </motion.div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-light selection:bg-secondary/10">
       <Navbar />
       <Toast {...toast} onClose={() => setToast({ ...toast, isVisible: false })} />
       <ConfirmModal 
@@ -234,390 +287,498 @@ export default function Admin() {
         onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} 
       />
 
-      <main className="flex-1 pt-24 pb-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto w-full">
         
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="bg-red-600 text-white p-3 rounded-xl shadow-lg shadow-red-200">
-              <Shield size={28} />
-            </div>
-            <div>
-              <h1 className="text-3xl font-serif font-bold text-gray-900">Admin Control</h1>
-              <p className="text-gray-500 text-sm">System administration and performance insights.</p>
-            </div>
-          </div>
-          <button 
-            onClick={fetchAdminData}
-            className="p-2 text-gray-400 hover:text-primary transition-all hover:bg-white rounded-lg border border-transparent hover:border-gray-200"
-          >
-            Refresh Data
-          </button>
+        {/* Navigation / Index */}
+        <div className="flex overflow-x-auto no-scrollbar gap-12 border-b border-primary/5 mb-20">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSelectedUserInsight(null); }}
+              className={`pb-6 text-sm font-bold uppercase tracking-[0.2em] transition-all relative group flex items-center gap-3 ${
+                activeTab === tab.id ? 'text-primary' : 'text-primary/30 hover:text-primary/60'
+              }`}
+            >
+              <tab.icon size={16} strokeWidth={activeTab === tab.id ? 2 : 1.5} />
+              {tab.label}
+              {activeTab === tab.id && (
+                <motion.div 
+                  layoutId="tab-active"
+                  className="absolute bottom-0 left-0 w-full h-1 bg-secondary"
+                />
+              )}
+            </button>
+          ))}
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <aside className="w-full lg:w-64 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-28">
-              <nav className="flex flex-col gap-2">
-                {tabs.map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3 p-3 rounded-xl transition-all font-bold text-sm ${
-                      activeTab === tab.id 
-                        ? 'bg-red-50 text-red-600 border border-red-100' 
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    {tab.icon}
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
-              <div className="mt-8 p-4 bg-gray-50 rounded-xl">
-                <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">System Status</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-medium text-gray-600">All Systems Operational</span>
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          {/* Content Area */}
-          <section className="flex-1 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 md:p-8 min-h-[600px] relative">
-            
+        <section className="relative">
+          <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-8">System Overview</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
-                    <div className="text-blue-600 mb-4"><Users size={32} /></div>
-                    <p className="text-sm font-bold text-blue-800 uppercase tracking-wider">Total Students</p>
-                    <p className="text-4xl font-serif font-bold text-blue-900">{stats?.totalUsers || 0}</p>
-                  </div>
-                  <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl">
-                    <div className="text-emerald-600 mb-4"><BookOpen size={32} /></div>
-                    <p className="text-sm font-bold text-emerald-800 uppercase tracking-wider">Resources Available</p>
-                    <p className="text-4xl font-serif font-bold text-emerald-900">{stats?.totalResources || 0}</p>
-                  </div>
-                  <div className="bg-purple-50 border border-purple-100 p-6 rounded-2xl">
-                    <div className="text-purple-600 mb-4"><GraduationCap size={32} /></div>
-                    <p className="text-sm font-bold text-purple-800 uppercase tracking-wider">Grades Recorded</p>
-                    <p className="text-4xl font-serif font-bold text-purple-900">{stats?.totalGradesRecorded || 0}</p>
-                  </div>
-                </div>
-
-                <div className="mt-12 bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[150px]">
-                   <p className="text-gray-400 font-medium">Quick stats and activity visualizer coming soon...</p>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'users' && !selectedUserInsight && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-gray-900">Student Directory</h2>
-                    <p className="text-gray-500 text-sm">Monitor academic progress and user activity.</p>
-                  </div>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input 
-                      type="text" 
-                      placeholder="Search users..." 
-                      className="input-field pl-10 w-full sm:w-64"
-                      value={userSearch}
-                      onChange={e => setUserSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 text-gray-600 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
-                        <th className="p-4 rounded-tl-xl">Student</th>
-                        <th className="p-4">Level</th>
-                        <th className="p-4">Contact</th>
-                        <th className="p-4 text-right rounded-tr-xl">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsers.map(u => (
-                        <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                          <td className="p-4">
-                            <div className="font-bold text-gray-900">{u.firstName} {u.lastName}</div>
-                            <div className="text-xs text-secondary font-medium">@{u.username}</div>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold whitespace-nowrap">
-                              {u.level}
-                            </span>
-                          </td>
-                          <td className="p-4 text-sm text-gray-500">{u.email}</td>
-                          <td className="p-4 text-right">
-                            <button 
-                              onClick={() => fetchUserInsights(u.id)}
-                              className="text-primary text-xs font-bold hover:underline"
-                            >
-                              View Insights
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredUsers.length === 0 && (
-                    <div className="py-12 text-center text-gray-400">No users found matching "{userSearch}"</div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'users' && selectedUserInsight && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <button 
-                  onClick={() => setSelectedUserInsight(null)}
-                  className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors"
-                >
-                  <ArrowLeft size={16} /> <span className="text-sm font-bold">Back to Directory</span>
-                </button>
+              <motion.div 
+                key="overview"
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <PageHeader 
+                  title="Overview" 
+                  subtitle="Comprehensive metrics and system health indicators for the JurisMemo ecosystem."
+                  actions={
+                    <button 
+                      onClick={fetchAdminData}
+                      className="btn-outline flex items-center gap-2"
+                    >
+                      <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
+                      Sync Records
+                    </button>
+                  }
+                />
                 
-                <div className="bg-gray-50 rounded-2xl p-6 md:p-8 border border-gray-100 mb-8">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="text-3xl font-serif font-bold text-gray-900">
-                          {selectedUserInsight.user.firstName} {selectedUserInsight.user.lastName}
-                        </h2>
-                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded">
-                          {selectedUserInsight.user.level}
-                        </span>
-                      </div>
-                      <p className="text-gray-500">@{selectedUserInsight.user.username} • {selectedUserInsight.user.email}</p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-primary/10 border border-primary/10">
+                  <div className="bg-light p-12 hover:bg-white transition-colors group">
+                    <Users className="text-secondary mb-12 group-hover:scale-110 transition-transform duration-500" size={48} strokeWidth={1} />
+                    <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-primary/40 mb-2">Academic Population</h3>
+                    <div className="flex items-baseline gap-4">
+                      <span className="text-7xl font-serif text-primary tracking-tighter">{stats?.totalUsers || 0}</span>
+                      <span className="text-sm font-serif italic text-primary/40">Verified Students</span>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center min-w-[120px]">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">General CGPA</p>
-                      <p className="text-3xl font-serif font-bold text-secondary">{selectedUserInsight.cgpa}</p>
+                  </div>
+                  <div className="bg-light p-12 hover:bg-white transition-colors group border-x border-primary/10 lg:border-none">
+                    <FileText className="text-secondary mb-12 group-hover:scale-110 transition-transform duration-500" size={48} strokeWidth={1} />
+                    <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-primary/40 mb-2">Curated Materials</h3>
+                    <div className="flex items-baseline gap-4">
+                      <span className="text-7xl font-serif text-primary tracking-tighter">{stats?.totalResources || 0}</span>
+                      <span className="text-sm font-serif italic text-primary/40">Resource Units</span>
+                    </div>
+                  </div>
+                  <div className="bg-light p-12 hover:bg-white transition-colors group">
+                    <GraduationCap className="text-secondary mb-12 group-hover:scale-110 transition-transform duration-500" size={48} strokeWidth={1} />
+                    <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-primary/40 mb-2">Evaluation Data</h3>
+                    <div className="flex items-baseline gap-4">
+                      <span className="text-7xl font-serif text-primary tracking-tighter">{stats?.totalGradesRecorded || 0}</span>
+                      <span className="text-sm font-serif italic text-primary/40">Individual Records</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                       <GraduationCap size={20} className="text-secondary" /> Academic Records
-                    </h3>
-                    <div className="space-y-3">
-                      {selectedUserInsight.grades.length === 0 ? (
-                        <p className="text-gray-400 text-sm italic">No grades recorded for this student yet.</p>
-                      ) : (
-                        selectedUserInsight.grades.map((g: any) => (
-                          <div key={g.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl">
-                            <div>
-                              <div className="text-sm font-bold text-gray-800">{g.course.course_code}</div>
-                              <div className="text-[10px] text-gray-400 font-medium">{g.course.title}</div>
-                            </div>
-                            <div className="px-3 py-1 bg-gray-50 text-gray-800 font-bold rounded text-lg border border-gray-100">
-                              {g.grade}
-                            </div>
-                          </div>
-                        ))
-                      )}
+                <div className="mt-24 grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+                  <div className="space-y-8">
+                    <div className="border-l-4 border-secondary pl-8">
+                      <h2 className="text-4xl font-serif text-primary mb-4">System Governance</h2>
+                      <p className="text-primary/60 font-serif italic text-lg leading-relaxed">
+                        Currently monitoring all administrative gateways. Ensuring seamless distribution of academic materials to 100L through 500L student brackets.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-6 p-8 bg-primary/5 rounded-sm border border-primary/5">
+                      <div className="w-4 h-4 rounded-full bg-secondary animate-pulse shadow-[0_0_10px_#8c1d1d]" />
+                      <span className="text-sm font-bold uppercase tracking-widest text-primary/70">Central Neural Link: Operational</span>
                     </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                       <CheckSquare size={20} className="text-secondary" /> Recent Tasks
-                    </h3>
-                    <div className="space-y-3">
-                      {selectedUserInsight.tasks.length === 0 ? (
-                        <p className="text-gray-400 text-sm italic">No tasks created by this student.</p>
-                      ) : (
-                        selectedUserInsight.tasks.map((t: any) => (
-                          <div key={t.id} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl opacity-80">
-                            <div className={`w-2 h-2 rounded-full ${t.is_completed ? 'bg-green-500' : 'bg-amber-500'}`}></div>
-                            <span className={`text-sm ${t.is_completed ? 'line-through text-gray-400' : 'text-gray-700 font-medium'}`}>
-                              {t.task}
-                            </span>
-                          </div>
-                        ))
-                      )}
+                  <div className="relative aspect-video bg-primary/5 border border-primary/10 overflow-hidden flex items-center justify-center">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/notebook.png')] opacity-10" />
+                    <div className="z-10 text-center">
+                      <BarChart3 size={64} className="mx-auto text-primary/10 mb-6" />
+                      <p className="font-serif italic text-primary/40 text-lg">Visual activity mapping coming soon.</p>
                     </div>
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'users' && (
+              <motion.div 
+                key="users"
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                {!selectedUserInsight ? (
+                  <>
+                    <PageHeader 
+                      title="Directory" 
+                      subtitle="A curated index of all students registered within the JurisMemo network. Monitor academic standing and engagement."
+                      actions={
+                        <div className="relative group">
+                          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/30 group-focus-within:text-primary transition-colors" size={20} />
+                          <input 
+                            type="text" 
+                            placeholder="Find student by name or id..." 
+                            className="bg-primary/5 border-none px-16 py-4 w-full md:w-96 font-serif italic text-lg focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-primary/20"
+                            value={userSearch}
+                            onChange={e => setUserSearch(e.target.value)}
+                          />
+                        </div>
+                      }
+                    />
+
+                    <div className="bg-white border border-primary/5">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-primary/10 text-[10px] font-bold uppercase tracking-[0.3em] text-primary/40">
+                            <th className="p-8">Identification</th>
+                            <th className="p-8">Academic Year</th>
+                            <th className="p-8">Communication</th>
+                            <th className="p-8 text-right">Access</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-primary/5">
+                          {filteredUsers.map((u, idx) => (
+                            <motion.tr 
+                              key={u.id}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className="group hover:bg-light transition-colors"
+                            >
+                              <td className="p-8">
+                                <div className="font-serif text-2xl text-primary mb-1">{u.firstName} {u.lastName}</div>
+                                <div className="text-xs font-bold uppercase tracking-widest text-primary/30">@{u.username}</div>
+                              </td>
+                              <td className="p-8">
+                                <span className="text-sm font-bold uppercase tracking-widest border border-primary/10 px-4 py-2 bg-white">
+                                  {u.level}
+                                </span>
+                              </td>
+                              <td className="p-8 text-lg font-serif italic text-primary/60">{u.email}</td>
+                              <td className="p-8 text-right">
+                                <button 
+                                  onClick={() => fetchUserInsights(u.id)}
+                                  className="text-primary/40 hover:text-secondary flex items-center gap-2 justify-end ml-auto group/btn transition-all"
+                                >
+                                  <span className="text-xs font-bold uppercase tracking-widest opacity-0 group-hover/btn:opacity-100 transition-all -translate-x-2 group-hover/btn:translate-x-0">View Dossier</span>
+                                  <ChevronRight size={20} />
+                                </button>
+                              </td>
+                            </motion.tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {filteredUsers.length === 0 && (
+                        <div className="py-24 text-center">
+                          <p className="font-serif italic text-2xl text-primary/20">No matching records found in directory.</p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.98 }} 
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="max-w-5xl mx-auto"
+                  >
+                    <button 
+                      onClick={() => setSelectedUserInsight(null)}
+                      className="flex items-center gap-4 text-primary/40 hover:text-primary mb-12 transition-colors uppercase text-xs font-bold tracking-widest"
+                    >
+                      <ArrowLeft size={16} /> Return to Directory
+                    </button>
+
+                    <div className="bg-white border border-primary/5 p-16 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 -translate-y-1/2 translate-x-1/2 rounded-full blur-3xl" />
+                      
+                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-20 relative z-10">
+                        <div>
+                          <div className="flex items-center gap-4 mb-6">
+                            <span className="px-4 py-1 bg-secondary text-light text-[10px] font-bold uppercase tracking-widest">
+                              {selectedUserInsight.user.level} Protocol
+                            </span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-primary/30">Ref: #{selectedUserInsight.user.id}</span>
+                          </div>
+                          <h2 className="text-7xl font-serif text-primary mb-4 leading-none uppercase tracking-tighter tracking-wider">
+                            {selectedUserInsight.user.firstName}<br/>{selectedUserInsight.user.lastName}
+                          </h2>
+                          <p className="text-xl font-serif italic text-primary/60">@{selectedUserInsight.user.username} — {selectedUserInsight.user.email}</p>
+                        </div>
+                        <div className="border border-primary/10 p-12 text-center bg-white shadow-2xl shadow-primary/5 min-w-[200px]">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-primary/40 mb-4">Academic CGPA</p>
+                          <p className="text-6xl font-serif text-secondary font-bold tracking-tighter tracking-wider">{selectedUserInsight.cgpa}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 relative z-10">
+                        <div>
+                          <div className="flex items-center justify-between border-primary/10 mb-8">
+                            <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-3">
+                              <GraduationCap size={16} className="text-secondary" /> Academic Journal
+                            </h3>
+                          </div>
+                          <div className="space-y-6">
+                            {selectedUserInsight.grades.length === 0 ? (
+                              <p className="font-serif italic text-primary/30">Zero data points recorded for this semester.</p>
+                            ) : (
+                              selectedUserInsight.grades.map((g: any, idx: number) => (
+                                <motion.div 
+                                  key={g.id}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.1 }}
+                                  className="flex items-center justify-between pb-6 border-b border-primary/5 last:border-none"
+                                >
+                                  <div>
+                                    <div className="text-lg font-serif text-primary leading-tight">{g.course.title}</div>
+                                    <div className="text-xs font-bold uppercase tracking-[0.1em] text-primary/40">{g.course.course_code}</div>
+                                  </div>
+                                  <div className="text-4xl font-serif text-secondary">{g.grade}</div>
+                                </motion.div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-primary mb-8 flex items-center gap-3">
+                            <CheckSquare size={16} className="text-secondary" /> Engagement Log
+                          </h3>
+                          <div className="space-y-4">
+                            {selectedUserInsight.tasks.length === 0 ? (
+                              <p className="font-serif italic text-primary/30">No recorded intellectual tasks for this period.</p>
+                            ) : (
+                              selectedUserInsight.tasks.map((t: any, idx: number) => (
+                                <motion.div 
+                                  key={t.id}
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: idx * 0.1 }}
+                                  className="flex items-start gap-4 p-6 bg-primary/5 border border-primary/5 group"
+                                >
+                                  <div className={`mt-1.5 w-2 h-2 rounded-full ring-4 ring-offset-4 ring-offset-light ${t.is_completed ? 'bg-secondary ring-secondary/10' : 'bg-primary/20 ring-primary/5'}`} />
+                                  <span className={`font-serif text-lg leading-tight ${t.is_completed ? 'line-through text-primary/30 italic' : 'text-primary/70'}`}>
+                                    {t.task}
+                                  </span>
+                                </motion.div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 
             {activeTab === 'resources' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
-                  <h2 className="text-2xl font-serif font-bold text-gray-900">Resource Repository</h2>
-                  <button 
-                    onClick={() => setShowUploadModal(true)}
-                    className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
-                  >
-                    <Upload size={18} /> Upload New
-                  </button>
-                </div>
+              <motion.div 
+                key="resources"
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <PageHeader 
+                  title="Archive" 
+                  subtitle="Centralized management of intellectual property. Manage lecture materials, case studies, and examination records."
+                  actions={
+                    <button 
+                      onClick={() => setShowUploadModal(true)}
+                      className="btn-primary flex items-center gap-2 group"
+                    >
+                      <Plus size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                      Incorporate Material
+                    </button>
+                  }
+                />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {resources.map(res => (
-                    <div key={res.id} className="p-4 border border-gray-100 rounded-xl bg-white hover:shadow-md transition-all group">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="bg-gray-100 p-2 rounded-lg text-gray-500"><FileText size={20} /></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                  {resources.map((res, idx) => (
+                    <motion.div 
+                      key={res.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="bg-white border border-primary/10 p-10 hover:shadow-2xl hover:shadow-primary/5 transition-all group relative overflow-hidden"
+                    >
+                      <div className="flex justify-between items-start mb-12">
+                        <div className="w-12 h-12 flex items-center justify-center border border-primary/10 group-hover:bg-primary group-hover:text-light transition-colors">
+                          <FileText size={20} strokeWidth={1.5} />
+                        </div>
                         <button 
                           onClick={() => handleDeleteResource(res.id)}
-                          className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"
+                          className="text-primary/20 hover:text-secondary opacity-0 group-hover:opacity-100 transition-all"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </button>
                       </div>
-                      <h4 className="font-bold text-gray-900 text-sm mb-1 truncate">{res.title}</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">{res.level} • {res.type}</p>
-                    </div>
+                      <h4 className="font-serif text-2xl text-primary leading-tight mb-4 group-hover:text-secondary transition-colors line-clamp-2 min-h-[3.5rem]">{res.title}</h4>
+                      <div className="flex flex-wrap gap-2 pt-4 border-t border-primary/5">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary/40 px-2 py-1 bg-primary/5">{res.level}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary/40 px-2 py-1 bg-primary/5">{res.type}</span>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </motion.div>
             )}
 
             {activeTab === 'news' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-gray-900">News & Announcements</h2>
-                    <p className="text-gray-500 text-sm">Post updates to the student body.</p>
-                  </div>
-                  <button 
-                    onClick={() => setShowNewsModal(true)}
-                    className="bg-secondary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all hover:scale-[1.02]"
-                  >
-                    <BookOpen size={18} /> Post News
-                  </button>
-                </div>
+              <motion.div 
+                key="news"
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <PageHeader 
+                  title="Gazette" 
+                  subtitle="Public dissemination of institutional updates and faculty alerts. Control the flow of information across the platform."
+                  actions={
+                    <button 
+                      onClick={() => setShowNewsModal(true)}
+                      className="btn-secondary flex items-center gap-3"
+                    >
+                      <Plus size={20} />
+                      Publish Article
+                    </button>
+                  }
+                />
 
-                <div className="space-y-4">
-                  {news.map(item => (
-                    <div key={item.id} className="p-5 border border-gray-100 rounded-2xl bg-white hover:border-secondary/20 transition-all flex items-start justify-between group">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 bg-secondary/10 text-secondary text-[10px] font-bold rounded uppercase">
-                            {item.category}
-                          </span>
-                          <span className="text-[10px] text-gray-400 font-medium">
-                            {new Date(item.createdAt).toLocaleDateString()}
-                          </span>
+                <div className="max-w-6xl mx-auto space-y-12">
+                  {news.map((item, idx) => (
+                    <motion.div 
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="group flex flex-col md:flex-row gap-12 pb-12 border-b border-primary/10 last:border-none"
+                    >
+                      <div className="md:w-48 shrink-0">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary mb-2">{item.category}</div>
+                        <div className="font-serif italic text-primary/40">
+                          {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
                         </div>
-                        <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
-                        <p className="text-sm text-gray-600 line-clamp-2">{item.content}</p>
                       </div>
-                      <button 
-                        onClick={() => handleDeleteNews(item.id)}
-                        className="p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                      <div className="flex-1">
+                        <h4 className="text-4xl font-serif text-primary mb-6 group-hover:text-secondary transition-colors duration-500">{item.title}</h4>
+                        <p className="text-xl font-serif italic text-primary/60 leading-relaxed max-w-3xl mb-8">{item.content}</p>
+                        <button 
+                          onClick={() => handleDeleteNews(item.id)}
+                          className="flex items-center gap-2 text-primary/20 hover:text-secondary text-[10px] font-bold uppercase tracking-widest transition-colors"
+                        >
+                          <Trash2 size={14} /> Remove Article
+                        </button>
+                      </div>
+                    </motion.div>
                   ))}
                   {news.length === 0 && (
-                    <div className="py-12 text-center text-gray-400">No news posted yet.</div>
+                    <div className="py-24 text-center border border-dashed border-primary/10">
+                      <p className="font-serif italic text-2xl text-primary/20">The Gazette archive is currently empty.</p>
+                    </div>
                   )}
                 </div>
               </motion.div>
             )}
+          </AnimatePresence>
+        </section>
 
-            {/* Modals outside tab logic */}
-            {showNewsModal && (
-              <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6">Create Announcement</h3>
-                  <div className="space-y-4">
+        {/* Modals - Redesigned Editorial Style */}
+        <AnimatePresence>
+          {showNewsModal && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-primary/20 backdrop-blur-xl">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0, rotateX: 10 }} 
+                animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-light p-16 max-w-3xl w-full border border-primary/10 shadow-[0_40px_100px_rgba(0,0,0,0.1)] relative"
+              >
+                <div className="absolute top-0 right-0 p-8">
+                  <button onClick={() => setShowNewsModal(false)} className="text-primary/20 hover:text-primary transition-colors"><X size={32} strokeWidth={1} /></button>
+                </div>
+
+                <div className="mb-12">
+                  <h3 className="text-5xl font-serif text-primary mb-4 tracking-tighter">Publish Article</h3>
+                  <p className="font-serif italic text-primary/40 text-lg">Broadcast information to the JurisMemo student body.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+                  <div className="space-y-8">
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Title</label>
+                      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Editorial Title</label>
                       <input 
-                        className="input-field" 
+                        className="w-full bg-transparent border-b border-primary/10 pb-4 text-2xl font-serif focus:outline-none focus:border-secondary transition-colors placeholder:text-primary/10" 
                         type="text" 
-                        placeholder="Announcing Exam Timetable..."
+                        placeholder="Article Headline..."
                         value={newsForm.title}
                         onChange={e => setNewsForm({...newsForm, title: e.target.value})}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-8">
                       <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Category</label>
-                        <select className="input-field" value={newsForm.category} onChange={e => setNewsForm({...newsForm, category: e.target.value})}>
+                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Classification</label>
+                        <select className="w-full bg-transparent border-b border-primary/10 pb-4 text-sm font-bold uppercase focus:outline-none" value={newsForm.category} onChange={e => setNewsForm({...newsForm, category: e.target.value})}>
                           <option>News</option><option>Exam</option><option>Blog</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Target Level</label>
-                        <select className="input-field" value={newsForm.level} onChange={e => setNewsForm({...newsForm, level: e.target.value})}>
+                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Target Audience</label>
+                        <select className="w-full bg-transparent border-b border-primary/10 pb-4 text-sm font-bold uppercase focus:outline-none" value={newsForm.level} onChange={e => setNewsForm({...newsForm, level: e.target.value})}>
                           <option>All</option><option>100L</option><option>200L</option><option>300L</option><option>400L</option><option>500L</option>
                         </select>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Content</label>
-                      <textarea 
-                        className="input-field min-h-[150px] py-3" 
-                        placeholder="Write your announcement here..."
-                        value={newsForm.content}
-                        onChange={e => setNewsForm({...newsForm, content: e.target.value})}
-                      />
-                    </div>
-                    <div className="flex gap-4 pt-4">
-                      <button onClick={() => setShowNewsModal(false)} className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all">Cancel</button>
-                      <button onClick={handleCreateNews} className="flex-1 py-3 bg-secondary text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">Publish</button>
-                    </div>
                   </div>
-                </motion.div>
-              </div>
-            )}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Content Body</label>
+                    <textarea 
+                      className="w-full bg-primary/5 p-8 min-h-[200px] font-serif text-lg focus:outline-none focus:bg-primary/5 transition-colors placeholder:text-primary/10 italic" 
+                      placeholder="Compose your message here..."
+                      value={newsForm.content}
+                      onChange={e => setNewsForm({...newsForm, content: e.target.value})}
+                    />
+                  </div>
+                </div>
 
-            {showUploadModal && (
-              <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <Upload size={20} className="text-primary" /> Upload Study Material
-                  </h3>
-                  <div className="space-y-4">
+                <div className="flex gap-4">
+                  <button onClick={handleCreateNews} className="btn-secondary flex-1 py-6 text-lg uppercase tracking-widest font-bold">Transmit Dispatch</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {showUploadModal && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-primary/20 backdrop-blur-xl">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white p-16 max-w-2xl w-full border border-primary/10 shadow-2xl relative"
+              >
+                <div className="absolute top-0 right-0 p-8">
+                  <button onClick={() => setShowUploadModal(false)} className="text-primary/20 hover:text-primary transition-colors"><X size={32} strokeWidth={1} /></button>
+                </div>
+
+                <div className="mb-12">
+                  <h3 className="text-5xl font-serif text-primary mb-4 tracking-tighter">Archive Node</h3>
+                  <p className="font-serif italic text-primary/40 text-lg">Incorporate new academic intellectual property.</p>
+                </div>
+
+                <div className="space-y-12">
+                  <div className="space-y-8">
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Resource Title</label>
+                      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Material Title</label>
                       <input 
-                        className="input-field" 
+                        className="w-full bg-transparent border-b border-primary/10 pb-4 text-2xl font-serif focus:outline-none focus:border-primary transition-colors placeholder:text-primary/10" 
                         type="text" 
-                        placeholder="e.g., Constitutional Law II Lecture Notes"
+                        placeholder="e.g. Constitutional Law Lecture Notes"
                         value={uploadForm.title}
                         onChange={e => setUploadForm({...uploadForm, title: e.target.value})}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-8">
                       <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Category</label>
-                        <select className="input-field" value={uploadForm.type} onChange={e => setUploadForm({...uploadForm, type: e.target.value})}>
+                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Material Type</label>
+                        <select className="w-full bg-transparent border-b border-primary/10 pb-4 text-sm font-bold uppercase focus:outline-none" value={uploadForm.type} onChange={e => setUploadForm({...uploadForm, type: e.target.value})}>
                           <option>Lecture Notes</option><option>Past Questions</option><option>Cases</option><option>Textbooks</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Target Level</label>
-                        <select className="input-field" value={uploadForm.level} onChange={e => setUploadForm({...uploadForm, level: e.target.value})}>
+                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Accessibility Range</label>
+                        <select className="w-full bg-transparent border-b border-primary/10 pb-4 text-sm font-bold uppercase focus:outline-none" value={uploadForm.level} onChange={e => setUploadForm({...uploadForm, level: e.target.value})}>
                           <option>100L</option><option>200L</option><option>300L</option><option>400L</option><option>500L</option>
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Description (Optional)</label>
-                      <textarea 
-                        className="input-field min-h-[80px] py-3" 
-                        placeholder="Brief description of the material..."
-                        value={uploadForm.description}
-                        onChange={e => setUploadForm({...uploadForm, description: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase mb-2">File (PDF, Docx, etc.)</label>
-                      <div className="relative group">
+                      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/40 mb-4 block">Physical Representation (File)</label>
+                      <div className="relative group bg-light border border-dashed border-primary/20 p-12 text-center hover:border-secondary transition-all cursor-pointer">
                         <input 
                           type="file" 
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
@@ -630,51 +791,51 @@ export default function Admin() {
                             }));
                           }}
                         />
-                        <div className={`p-6 border-2 border-dashed rounded-xl text-center transition-all ${uploadForm.file ? 'border-primary bg-primary/5' : 'border-gray-200 group-hover:border-primary/40'}`}>
-                          <Upload className={`mx-auto mb-2 ${uploadForm.file ? 'text-primary' : 'text-gray-300'}`} size={32} />
-                          <p className="text-sm font-medium text-gray-600">
-                            {uploadForm.file ? uploadForm.file.name : 'Click to select or drag and drop'}
-                          </p>
-                          <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold">Max size: 10MB</p>
-                        </div>
+                        <Upload className={`mx-auto mb-6 ${uploadForm.file ? 'text-secondary' : 'text-primary/10'}`} size={48} strokeWidth={1} />
+                        <p className="font-serif italic text-lg text-primary/60">
+                          {uploadForm.file ? uploadForm.file.name : 'Click to select or drag material into frame'}
+                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-primary/20 mt-4">Document limit: 10 megabytes</p>
                       </div>
                     </div>
-
-                    <div className="flex gap-4 pt-4">
-                      <button 
-                        disabled={uploading}
-                        onClick={() => setShowUploadModal(false)} 
-                        className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                      <button 
-                        disabled={uploading || !uploadForm.file || !uploadForm.title}
-                        onClick={handleFileUpload} 
-                        className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
-                      >
-                        {uploading ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Uploading...
-                          </>
-                        ) : (
-                          'Upload Resource'
-                        )}
-                      </button>
-                    </div>
                   </div>
-                </motion.div>
+
+                  <button 
+                    disabled={uploading || !uploadForm.file || !uploadForm.title}
+                    onClick={handleFileUpload} 
+                    className="btn-primary w-full py-6 text-lg uppercase tracking-widest font-bold flex items-center justify-center gap-4 disabled:opacity-30 disabled:hover:shadow-none"
+                  >
+                    {uploading ? (
+                      <>
+                        <RefreshCw className="animate-spin" size={24} />
+                        Indexing Records...
+                      </>
+                    ) : (
+                      'Commit to Archive'
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Loading Overlay */}
+        <AnimatePresence>
+          {isLoading && !activeTab && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-light/80 backdrop-blur-md z-[100] flex items-center justify-center"
+            >
+              <div className="text-center">
+                <div className="w-24 h-24 border-t-2 border-secondary rounded-full animate-spin mx-auto mb-8" />
+                <p className="font-serif italic text-2xl text-primary animate-pulse tracking-widest">Compiling Administrative Data...</p>
               </div>
-            )}
-            
-            {isLoading && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10 rounded-2xl">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-          </section>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
       <Footer />
     </div>
