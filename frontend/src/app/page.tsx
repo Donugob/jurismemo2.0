@@ -167,7 +167,7 @@ export default function Home() {
                 <span className="inline-block border border-light/30 px-3 py-1 text-[10px] uppercase tracking-widest font-bold text-light mb-8">
                   Section 02 — Voices
                 </span>
-                <h2 className="text-5xl md:text-7xl font-serif tracking-tighter uppercase leading-[0.9]">
+                <h2 className="text-5xl md:text-7xl font-serif tracking-tighter uppercase leading-[0.9] text-white">
                   Words from <br/> <span className="text-accent italic">Scholars</span>
                 </h2>
               </div>
