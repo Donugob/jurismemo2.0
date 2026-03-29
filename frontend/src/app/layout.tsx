@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
-import { Poppins, Lora } from 'next/font/google';
+import { DM_Sans, Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 
-const poppins = Poppins({
-  weight: ['300', '400', '500', '600', '700'],
+const dmSans = DM_Sans({
+  weight: ['400', '500', '700'],
   subsets: ['latin'],
-  variable: '--font-poppins',
+  variable: '--font-dm-sans',
   display: 'swap',
 });
 
-const lora = Lora({
+const cormorant = Cormorant_Garamond({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
-  variable: '--font-lora',
+  variable: '--font-cormorant',
   display: 'swap',
 });
 
@@ -76,8 +76,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${poppins.variable} ${lora.variable}`}>
-      <body className={`font-sans antialiased text-gray-800 bg-gray-50 flex flex-col min-h-screen`}>
+    <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
+      <body className={`font-sans antialiased text-primary bg-light flex flex-col min-h-screen`}>
         <AuthProvider>
           {children}
         </AuthProvider>

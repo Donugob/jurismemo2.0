@@ -126,7 +126,6 @@ export default function Dashboard() {
   };
 
   const calculateSemesterGpa = () => {
-    if (selectedLevel === 'All' || selectedSemester === 'All') return calculateCgpa(grades);
     return calculateCgpa(filteredGrades);
   };
 
@@ -273,8 +272,8 @@ export default function Dashboard() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-light">
+        <div className="animate-spin rounded-none h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -282,7 +281,7 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800">
+    <div className="min-h-screen flex flex-col bg-light text-primary">
       <Navbar />
       <main className="flex-1 pt-24 pb-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8 relative">
         <Toast 
@@ -307,12 +306,12 @@ export default function Dashboard() {
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              className="bg-white rounded-none p-8 max-w-md w-full "
             >
               <h3 className="text-xl font-bold text-primary mb-6">Add New Grade</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Grade for {selectedLevel} - {selectedSemester}</label>
+                  <label className="block text-xs font-bold text-primary/40 uppercase mb-2">Grade for {selectedLevel} - {selectedSemester}</label>
                   <select 
                     className="input-field" 
                     value={selectedCourse} 
@@ -330,7 +329,7 @@ export default function Dashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Score/Grade</label>
+                  <label className="block text-xs font-bold text-primary/40 uppercase mb-2">Score/Grade</label>
                   <select 
                     className="input-field"
                     value={selectedGrade}
@@ -341,8 +340,8 @@ export default function Dashboard() {
                 </div>
                 {gradeError && <p className="text-red-500 text-xs">{gradeError}</p>}
                 <div className="flex gap-4 pt-4">
-                  <button onClick={() => setShowGradeModal(false)} className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl">Cancel</button>
-                  <button onClick={handleAddGrade} className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20">Add Grade</button>
+                  <button onClick={() => setShowGradeModal(false)} className="flex-1 py-3 text-primary/60 font-bold hover:bg-light rounded-none">Cancel</button>
+                  <button onClick={handleAddGrade} className="flex-1 py-3 bg-primary text-white font-bold rounded-none  shadow-primary/20">Add Grade</button>
                 </div>
               </div>
             </motion.div>
@@ -350,13 +349,13 @@ export default function Dashboard() {
         )}
 
         {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
+        <aside className="hidden md:block md:w-64 shrink-0">
+          <div className="bg-white border text-primary border-primary rounded-none shadow-none p-6 sticky top-28">
             <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=2c3e50&color=fff`} className="w-12 h-12 rounded-full" alt="Profile" />
+              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=2c3e50&color=fff`} className="w-12 h-12 rounded-none" alt="Profile" />
               <div>
-                <h3 className="font-bold text-gray-800 truncate max-w-[120px]">{user.username}</h3>
-                <p className="text-sm text-gray-500">{user.level || '100L'} Law</p>
+                <h3 className="font-bold text-primary truncate max-w-[120px]">{user.username}</h3>
+                <p className="text-sm text-primary/60">{user.level || '100L'} Law</p>
               </div>
             </div>
             
@@ -365,13 +364,13 @@ export default function Dashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                  className={`flex items-center justify-between p-3 rounded-none transition-all ${
                     activeTab === tab.id 
-                      ? 'bg-primary text-white shadow-md' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-primary'
+                      ? 'bg-primary text-white ' 
+                      : 'text-primary/80 hover:bg-light hover:text-primary'
                   }`}
                 >
-                  <div className="flex items-center gap-3 font-medium">
+                  <div className="flex items-center gap-3 font-medium tracking-wide">
                     {tab.icon}
                     {tab.label}
                   </div>
@@ -379,8 +378,8 @@ export default function Dashboard() {
                 </button>
               ))}
               
-              <button onClick={logout} className="flex items-center justify-between p-3 rounded-lg transition-all text-red-500 hover:bg-red-50 hover:text-red-700 mt-4 border-t border-gray-100">
-                <div className="flex items-center gap-3 font-medium">
+              <button onClick={logout} className="flex items-center justify-between p-3 rounded-none transition-all text-red-500 hover:bg-red-50 hover:text-red-700 mt-4 border-t border-gray-100">
+                <div className="flex items-center gap-3 font-medium tracking-wide">
                   <LogOut size={20} />
                   Logout
                 </div>
@@ -389,8 +388,28 @@ export default function Dashboard() {
           </div>
         </aside>
 
+        {/* Mobile Navigation */}
+        <div className="md:hidden w-full overflow-x-auto mb-6 border-b border-primary/20 sticky top-[72px] bg-light z-40 pb-2 -mx-4 px-4 w-[calc(100%+2rem)] scrollbar-hide">
+          <div className="flex gap-2 w-max">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-3 text-[10px] uppercase tracking-widest font-bold border transition-colors ${
+                  activeTab === tab.id 
+                    ? 'bg-primary text-light border-primary' 
+                    : 'bg-white text-primary/60 border-primary/20 shadow-sm'
+                }`}
+              >
+                {tab.icon && <span className="opacity-70 scale-75">{tab.icon}</span>}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Content Area */}
-        <section className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 min-h-[600px]">
+        <section className="flex-1 bg-white border text-primary border-primary rounded-none shadow-none p-4 sm:p-6 md:p-10 min-h-[600px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -402,12 +421,12 @@ export default function Dashboard() {
               {activeTab === 'grades' && (
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <h2 className="text-2xl font-serif font-bold text-primary">Academic Performance</h2>
-                    <div className="flex gap-2">
+                    <h2 className="text-4xl font-serif tracking-tighter uppercase text-primary border-b border-primary/20 pb-4 mb-8">Academic Performance</h2>
+                    <div className="grid grid-cols-2 md:flex gap-2 w-full md:w-auto mt-4 md:mt-0">
                        <select 
                         value={selectedLevel} 
                         onChange={(e) => setSelectedLevel(e.target.value)}
-                        className="p-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary outline-none"
+                        className="p-2 border border-gray-200 rounded-none text-sm bg-white focus:ring-2 focus:ring-primary outline-none"
                        >
                          <option value="All">All Levels</option>
                          <option>100L</option><option>200L</option><option>300L</option><option>400L</option><option>500L</option>
@@ -415,7 +434,7 @@ export default function Dashboard() {
                        <select 
                         value={selectedSemester} 
                         onChange={(e) => setSelectedSemester(e.target.value)}
-                        className="p-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary outline-none"
+                        className="p-2 border border-gray-200 rounded-none text-sm bg-white focus:ring-2 focus:ring-primary outline-none"
                        >
                          <option value="All">All Semesters</option>
                          <option value="Semester 1">1st Semester</option>
@@ -424,7 +443,7 @@ export default function Dashboard() {
                        {selectedLevel !== 'All' && selectedSemester !== 'All' && (
                          <button 
                           onClick={() => {setSelectedCourse(''); setGradeError(''); setShowGradeModal(true)}}
-                          className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:shadow-md transition-all whitespace-nowrap"
+                          className="col-span-2 md:col-span-1 px-4 py-3 md:py-2 bg-primary text-white text-xs uppercase tracking-widest font-bold border border-primary shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap"
                          >
                            + Add Grade
                          </button>
@@ -432,24 +451,64 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-6 rounded-xl shadow-lg">
-                      <p className="opacity-80 font-medium mb-1">
-                        {selectedLevel === 'All' ? 'Overall Avg' : `${selectedLevel} GPA`}
-                      </p>
-                      <h3 className="text-4xl font-bold">{calculateSemesterGpa()}</h3>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-500 to-emerald-700 text-white p-6 rounded-xl shadow-lg">
-                      <p className="opacity-80 font-medium mb-1">General CGPA</p>
-                      <h3 className="text-4xl font-bold">{calculateCgpa()}</h3>
-                    </div>
-                  </div>
+                  <motion.div layout className={`grid grid-cols-1 gap-4 mb-8 ${selectedLevel === 'All' && selectedSemester === 'All' ? '' : 'sm:grid-cols-2'}`}>
+                    <AnimatePresence mode="popLayout">
+                      {!(selectedLevel === 'All' && selectedSemester === 'All') && (
+                        <motion.div 
+                          layout
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.4 }}
+                          className="bg-white p-6 border-l-4 border-l-primary border-y border-r border-primary/20 relative shadow-sm"
+                        >
+                          <p className="text-[10px] uppercase tracking-widest font-bold text-primary/60 mb-2">
+                            {selectedLevel !== 'All' && selectedSemester !== 'All' 
+                              ? `${selectedLevel} • ${selectedSemester.replace('Semester ', '')} Semester GPA` 
+                              : selectedLevel !== 'All' 
+                                ? `${selectedLevel} CGPA` 
+                                : `${selectedSemester} GPA (All Levels)`}
+                          </p>
+                          <h3 className="text-5xl font-serif tracking-tighter text-primary">{calculateSemesterGpa()}</h3>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <motion.div layout transition={{ duration: 0.4 }} className="bg-white p-6 border-l-4 border-l-secondary border-y border-r border-primary/20 relative shadow-sm h-full">
+                      <p className="text-[10px] uppercase tracking-widest font-bold text-primary/60 mb-2">General CGPA</p>
+                      <h3 className="text-5xl font-serif tracking-tighter text-primary">{calculateCgpa()}</h3>
+                    </motion.div>
+                  </motion.div>
                   
                   {filteredGrades.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
+                    <>
+                    {/* Mobile List View */}
+                      <div className="md:hidden space-y-4 mb-4">
+                        {filteredGrades.map(g => (
+                          <div key={g.id} className="bg-white p-4 border border-primary/20 relative shadow-sm">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <div className="font-bold text-primary font-serif tracking-tight text-xl">{g.course_code}</div>
+                                <div className="text-[10px] uppercase tracking-widest text-primary/60 font-bold mt-1 line-clamp-1">{g.course?.title}</div>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-serif text-3xl font-bold text-primary leading-none">{g.grade}</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-end border-t border-primary/10 pt-3 mt-1">
+                              <div className="text-[10px] font-bold text-primary/40 uppercase tracking-widest">
+                                {g.level} • {g.semester.replace(`${g.level} `, '')}
+                              </div>
+                              <button onClick={() => handleDeleteGrade(g.id)} className="text-red-500/80 font-bold text-[10px] uppercase tracking-widest">Remove</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Desktop Table View */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-left">
                         <thead>
-                          <tr className="border-b border-gray-100 text-xs uppercase tracking-wider text-gray-400 font-bold">
+                          <tr className="border-b border-gray-100 text-xs uppercase tracking-wider text-primary/40 font-bold">
                             <th className="pb-4 pr-4">Course Code</th>
                             <th className="pb-4 px-4">Level</th>
                             <th className="pb-4 px-4">Semester</th>
@@ -459,15 +518,15 @@ export default function Dashboard() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {filteredGrades.map(g => (
-                            <tr key={g.id} className="text-gray-700 hover:bg-gray-50 transition-colors group">
+                            <tr key={g.id} className="text-primary/90 hover:bg-light transition-colors group">
                               <td className="py-4 pr-4">
-                                <div className="font-bold text-gray-800">{g.course_code}</div>
-                                <div className="text-[10px] text-gray-400 font-medium line-clamp-1">{g.course?.title}</div>
+                                <div className="font-bold text-primary">{g.course_code}</div>
+                                <div className="text-[10px] text-primary/40 font-medium tracking-wide line-clamp-1">{g.course?.title}</div>
                               </td>
-                              <td className="py-4 px-4 text-sm font-medium">{g.level}</td>
-                              <td className="py-4 px-4 text-sm text-gray-500">{g.semester.replace(`${g.level} `, '')}</td>
+                              <td className="py-4 px-4 text-sm font-medium tracking-wide">{g.level}</td>
+                              <td className="py-4 px-4 text-sm text-primary/60">{g.semester.replace(`${g.level} `, '')}</td>
                               <td className="py-4 px-4 text-right">
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-black ${
+                                <span className={`inline-block px-3 py-1 rounded-none text-xs font-black ${
                                   g.grade === 'A' ? 'bg-green-100 text-green-700' :
                                   g.grade === 'B' ? 'bg-blue-100 text-blue-700' :
                                   g.grade === 'C' ? 'bg-yellow-100 text-yellow-700' :
@@ -484,10 +543,11 @@ export default function Dashboard() {
                         </tbody>
                       </table>
                     </div>
+                    </>
                   ) : (
-                    <div className="bg-gray-50 rounded-xl p-12 border border-gray-100 text-center">
-                      <p className="text-gray-500 mb-2">No grades found for the selected criteria.</p>
-                      <p className="text-xs text-gray-400 italic">Try changing the filters or adding a new grade.</p>
+                    <div className="bg-light rounded-none p-12 border border-gray-100 text-center">
+                      <p className="text-primary/60 mb-2">No grades found for the selected criteria.</p>
+                      <p className="text-xs text-primary/40 italic">Try changing the filters or adding a new grade.</p>
                     </div>
                   )}
                 </div>
@@ -495,11 +555,11 @@ export default function Dashboard() {
 
               {activeTab === 'profile' && (
                 <div className="max-w-xl">
-                  <h2 className="text-2xl font-serif font-bold text-primary mb-6">Manage Profile</h2>
+                  <h2 className="text-4xl font-serif tracking-tighter uppercase text-primary border-b border-primary/20 pb-4 mb-8 mb-6">Manage Profile</h2>
                   <form onSubmit={handleUpdateProfile} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-gray-400 mb-2">First Name</label>
+                        <label className="block text-xs font-bold uppercase text-primary/40 mb-2">First Name</label>
                         <input 
                           type="text" 
                           className="input-field" 
@@ -508,7 +568,7 @@ export default function Dashboard() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Last Name</label>
+                        <label className="block text-xs font-bold uppercase text-primary/40 mb-2">Last Name</label>
                         <input 
                           type="text" 
                           className="input-field" 
@@ -518,11 +578,11 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Email Address</label>
-                      <input type="email" className="input-field bg-gray-50 text-gray-400 cursor-not-allowed" value={user.email} disabled />
+                      <label className="block text-xs font-bold uppercase text-primary/40 mb-2">Email Address</label>
+                      <input type="email" className="input-field bg-light text-primary/40 cursor-not-allowed" value={user.email} disabled />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Phone Number</label>
+                      <label className="block text-xs font-bold uppercase text-primary/40 mb-2">Phone Number</label>
                       <input 
                         type="text" 
                         className="input-field" 
@@ -531,7 +591,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Home Address</label>
+                      <label className="block text-xs font-bold uppercase text-primary/40 mb-2">Home Address</label>
                       <input 
                         type="text" 
                         className="input-field" 
@@ -540,7 +600,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Academic Level</label>
+                      <label className="block text-xs font-bold uppercase text-primary/40 mb-2">Academic Level</label>
                       <select 
                         className="input-field" 
                         value={profileForm.level} 
@@ -550,7 +610,7 @@ export default function Dashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Preferred Courses (Optional)</label>
+                      <label className="block text-xs font-bold uppercase text-primary/40 mb-2">Preferred Courses (Optional)</label>
                       <textarea 
                         className="input-field min-h-[100px] py-3" 
                         placeholder="e.g. Criminal Law, Tort Law"
@@ -561,7 +621,7 @@ export default function Dashboard() {
                     <button 
                       type="submit" 
                       disabled={isUpdatingProfile}
-                      className="btn-primary w-full py-4 text-white font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                      className="btn-primary w-full py-4 text-white font-bold  shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                     >
                       {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
                     </button>
@@ -572,7 +632,7 @@ export default function Dashboard() {
               {activeTab === 'resources' && (
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                    <h2 className="text-2xl font-serif font-bold text-primary">Academic Resources</h2>
+                    <h2 className="text-4xl font-serif tracking-tighter uppercase text-primary border-b border-primary/20 pb-4 mb-8">Academic Resources</h2>
                     <div className="flex flex-1 max-w-md gap-2">
                        <input 
                         type="text" 
@@ -582,7 +642,7 @@ export default function Dashboard() {
                         onChange={e => setResourceSearch(e.target.value)}
                        />
                        <select 
-                        className="p-2 border border-gray-200 rounded-lg text-sm bg-white outline-none"
+                        className="p-2 border border-gray-200 rounded-none text-sm bg-white outline-none"
                         value={resourceLevelFilter}
                         onChange={e => setResourceLevelFilter(e.target.value)}
                        >
@@ -595,18 +655,18 @@ export default function Dashboard() {
                   {filteredResources.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                       {filteredResources.map(r => (
-                        <div key={r.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:border-primary/40 hover:shadow-md transition-all group relative overflow-hidden">
+                        <div key={r.id} className="bg-white p-6 border text-primary border-primary hover:bg-primary hover:text-light transition-colors transition-all group relative overflow-hidden">
                           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-12 -mt-12 transition-all group-hover:bg-primary/10" />
                           <div className="relative flex items-start justify-between">
                             <div className="pr-8">
                               <span className="text-[10px] uppercase tracking-widest font-black text-primary/40 mb-2 block">
                                 {r.resource_type} • {r.level}
                               </span>
-                              <h3 className="font-bold text-gray-800 mb-1 group-hover:text-primary transition-colors">{r.title}</h3>
-                              <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">{r.description || 'Access legal documents, past questions, and lecture notes for your level.'}</p>
+                              <h3 className="font-bold text-primary mb-1 group-hover:text-primary transition-colors">{r.title}</h3>
+                              <p className="text-xs text-primary/60 line-clamp-2 mb-4 leading-relaxed">{r.description || 'Access legal documents, past questions, and lecture notes for your level.'}</p>
                             </div>
-                            <div className="bg-gray-50 p-2.5 rounded-xl group-hover:bg-primary/10 transition-colors">
-                              <FileText className="text-gray-400 group-hover:text-primary" size={20} />
+                            <div className="bg-light p-2.5 rounded-none group-hover:bg-primary/10 transition-colors">
+                              <FileText className="text-primary/40 group-hover:text-primary" size={20} />
                             </div>
                           </div>
                           <a 
@@ -620,9 +680,9 @@ export default function Dashboard() {
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-gray-50 rounded-2xl p-20 border border-dashed border-gray-200 text-center">
+                    <div className="bg-light rounded-none p-20 border border-dashed border-gray-200 text-center">
                       <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                      <p className="text-gray-500 font-medium">No materials match your search.</p>
+                      <p className="text-primary/60 font-medium tracking-wide">No materials match your search.</p>
                       <button onClick={() => {setResourceSearch(''); setResourceLevelFilter('All')}} className="mt-4 text-primary text-sm font-bold hover:underline">Clear all filters</button>
                     </div>
                   )}
@@ -631,18 +691,18 @@ export default function Dashboard() {
 
               {activeTab === 'tasks' && (
                 <div>
-                  <h2 className="text-2xl font-serif font-bold text-primary mb-6">Task Manager</h2>
-                  <div className="bg-white rounded-xl border border-gray-100 p-1">
-                    <div className="flex gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 mb-6">
+                  <h2 className="text-4xl font-serif tracking-tighter uppercase text-primary border-b border-primary/20 pb-4 mb-8 mb-6">Task Manager</h2>
+                  <div className="bg-white border text-primary border-primary rounded-none shadow-none p-1">
+                    <div className="flex gap-2 p-3 bg-light rounded-none border border-gray-100 mb-6">
                       <input 
                         type="text" 
                         placeholder="What's your next study goal?" 
-                        className="bg-transparent flex-1 outline-none px-2 text-gray-700 font-medium placeholder:text-gray-400"
+                        className="bg-transparent flex-1 outline-none px-2 text-primary/90 font-medium tracking-wide placeholder:text-primary/40"
                         value={newTaskText}
                         onChange={e => setNewTaskText(e.target.value)}
                         onKeyPress={e => e.key === 'Enter' && handleAddTask()}
                       />
-                      <button onClick={handleAddTask} className="bg-primary text-white p-2 rounded-lg hover:scale-105 transition-transform">
+                      <button onClick={handleAddTask} className="bg-primary text-white p-2 rounded-none hover:scale-105 transition-transform">
                         <ChevronRight size={24} />
                       </button>
                     </div>
@@ -650,18 +710,18 @@ export default function Dashboard() {
                     {tasks.length > 0 ? (
                       <div className="space-y-2 p-1">
                         {tasks.map(t => (
-                          <div key={t.id} className="bg-white p-4 rounded-xl border border-gray-50 hover:border-gray-100 hover:shadow-sm transition-all flex items-center justify-between group">
+                          <div key={t.id} className="bg-white p-4 border-b border-primary/20 hover:border-primary transition-colors transition-all flex items-center justify-between group">
                             <div className="flex items-center gap-4 flex-1">
                               <button 
                                 onClick={() => handleToggleTask(t.id)}
-                                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                  t.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-gray-200 hover:border-primary'
+                                className={`w-6 h-6 rounded-none border-2 flex items-center justify-center transition-all ${
+                                  t.status === 'completed' ? 'bg-primary border-primary text-light' : 'border-gray-200 hover:border-primary'
                                 }`}
                               >
-                                {t.status === 'completed' && <div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm" />}
+                                {t.status === 'completed' && <div className="w-2.5 h-2.5 bg-white rounded-none " />}
                               </button>
-                              <span className={`font-medium transition-all ${
-                                t.status === 'completed' ? 'text-gray-300 line-through' : 'text-gray-700'
+                              <span className={`font-medium tracking-wide transition-all ${
+                                t.status === 'completed' ? 'text-gray-300 line-through' : 'text-primary/90'
                               }`}>
                                 {t.task}
                               </span>
@@ -677,8 +737,8 @@ export default function Dashboard() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center text-gray-400 py-20">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <div className="text-center text-primary/40 py-20">
+                        <div className="w-20 h-20 bg-light rounded-none flex items-center justify-center mx-auto mb-6">
                           <CheckSquare size={32} className="opacity-20" />
                         </div>
                         <p className="font-serif italic">Your study agenda is currently clear.</p>

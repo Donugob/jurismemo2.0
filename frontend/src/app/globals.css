@@ -1,44 +1,48 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2c3e50;
-  --color-primary-hover: #1e2b38;
-  --color-secondary: #3498db;
-  --color-accent: #e74c3c;
-  --color-accent-hover: #c0392b;
-  --color-light: #f8f9fa;
-  --color-dark: #212529;
+  --color-primary: #0a0a0a;
+  --color-primary-hover: #1f1f1f;
+  --color-secondary: #8c1d1d;
+  --color-secondary-hover: #701717;
+  --color-accent: #c5a059;
+  --color-accent-hover: #b08d4a;
+  --color-light: #f7f6f2;
+  --color-dark: #0f1012;
 
-  --font-sans: var(--font-poppins), sans-serif;
-  --font-serif: var(--font-lora), serif;
+  --font-sans: var(--font-dm-sans), sans-serif;
+  --font-serif: var(--font-cormorant), serif;
 }
 
 @layer base {
   body {
-    @apply font-sans bg-gray-50 text-gray-800;
+    @apply font-sans bg-light text-primary selection:bg-secondary/20 selection:text-primary;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-semibold text-primary;
+    @apply font-serif font-medium text-primary tracking-tight;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-white px-6 py-2 rounded-md transition-all duration-300 hover:bg-primary-hover hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-secondary/50;
+    @apply bg-primary text-light px-8 py-3 rounded-none border border-primary transition-all duration-300 hover:bg-light hover:text-primary hover:shadow-[4px_4px_0px_#8c1d1d] focus:outline-none focus:ring-1 focus:ring-primary;
   }
   .btn-secondary {
-    @apply bg-secondary text-white px-6 py-2 rounded-md transition-all duration-300 hover:bg-blue-600 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400/50;
+    @apply bg-secondary text-light px-8 py-3 rounded-none border border-secondary transition-all duration-300 hover:bg-primary border-primary hover:text-light hover:shadow-[4px_4px_0px_#c5a059] focus:outline-none focus:ring-1 focus:ring-primary;
   }
   .btn-accent {
-    @apply bg-accent text-white px-6 py-2 rounded-md transition-all duration-300 hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400/50;
+    @apply bg-accent text-primary px-8 py-3 rounded-none border border-accent transition-all duration-300 hover:bg-light hover:border-primary hover:shadow-[4px_4px_0px_#0a0a0a] focus:outline-none focus:ring-1 focus:ring-accent;
   }
   .btn-outline {
-    @apply border-2 border-primary text-primary bg-transparent px-6 py-2 rounded-md transition-all duration-300 hover:bg-primary hover:text-white hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/50;
+    @apply border border-primary text-primary bg-transparent px-8 py-3 rounded-none transition-all duration-300 hover:bg-primary hover:text-light hover:shadow-[4px_4px_0px_#c5a059] focus:outline-none focus:ring-1 focus:ring-primary;
   }
   .input-field {
-    @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors;
+    @apply w-full border-b border-gray-300 bg-transparent px-0 py-3 rounded-none focus:outline-none focus:border-primary focus:ring-0 transition-colors placeholder:text-gray-400;
   }
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+    @apply transition-all duration-500 hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(0,0,0,0.05)] border border-gray-200 bg-white;
+  }
+  .editorial-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-[1px] after:bottom-0 after:left-0 after:bg-secondary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
   }
 }
