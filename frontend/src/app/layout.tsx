@@ -18,29 +18,30 @@ const cormorant = Cormorant_Garamond({
 
 // Solid SEO configuration for the root layout
 export const metadata: Metadata = {
+  metadataBase: new URL('https://jurismemo.vercel.app'),
   title: {
-    default: 'JurisMemo - Nigerian Law Resources & Lecture Notes',
+    default: 'JurisMemo — Nigerian Law Resources & Lecture Notes',
     template: '%s | JurisMemo',
   },
-  description: 'High-quality lecture notes, past questions, and resources for law students in Nigeria. We are dedicated to helping you excel in your studies at Imo State University and beyond.',
+  description: 'Master your legal studies with JurisMemo. The definitive arsenal for law students in Nigeria, providing verified lecture notes, past questions, and case summaries.',
   applicationName: 'JurisMemo',
-  authors: [{ name: 'JurisMemo Team', url: 'https://jurismemo.com' }],
-  keywords: ['Law students', 'Nigeria', 'Lecture notes', 'Past questions', 'Imo State University', 'IMSU Law', 'Law notes', 'Legal resources'],
+  authors: [{ name: 'JurisMemo Team', url: 'https://jurismemo.vercel.app' }],
+  keywords: ['Law students', 'Nigeria', 'Lecture notes', 'Past questions', 'Imo State University', 'IMSU Law', 'Law notes', 'Legal resources', 'Constitutional Law', 'Criminal Law'],
   creator: 'JurisMemo',
   publisher: 'JurisMemo',
   openGraph: {
     type: 'website',
     locale: 'en_NG',
-    url: 'https://jurismemo.com',
-    title: 'JurisMemo - Your Trusted Source for Law Lecture Notes',
-    description: 'Find and download free law lecture notes and other resources for law students in Nigeria.',
+    url: 'https://jurismemo.vercel.app',
+    title: 'JurisMemo — Master Your Nigerian Legal Studies',
+    description: 'The definitive arsenal for law students. Access verified lecture notes, past questions, and cases tailored for ivory tower excellence.',
     siteName: 'JurisMemo',
     images: [
       {
-        url: 'https://jurismemo.com/images/default-og.jpg',
+        url: 'https://i.postimg.cc/RhfGPFn4/Gemini-Generated-Image-vxa4wsvxa4wsvxa4.webp',
         width: 1200,
         height: 630,
-        alt: 'JurisMemo Hero Image',
+        alt: 'JurisMemo — Premium Law Resources',
       },
     ],
   },
@@ -48,9 +49,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@Don_ugob',
     creator: '@Don_ugob',
-    title: 'JurisMemo - Nigerian Law Resources',
-    description: 'Find and download free law lecture notes and other resources for law students in Nigeria.',
-    images: ['https://jurismemo.com/images/default-og.jpg'],
+    title: 'JurisMemo — Master Your Nigerian Legal Studies',
+    description: 'The definitive arsenal for law students. Access verified lecture notes, past questions, and cases tailored for ivory tower excellence.',
+    images: ['https://i.postimg.cc/RhfGPFn4/Gemini-Generated-Image-vxa4wsvxa4wsvxa4.webp'],
   },
   robots: {
     index: true,
