@@ -33,7 +33,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        const isValidPassword = await bcrypt.compare(credentials.password as string, user.password)
+        // Support for legacy $2y$ hashes (PHP-style) by treating them as $2a$ for bcryptjs
+        let storedPassword = user.password
+        if (storedPassword.startsWith('$2y$')) {
+          storedPassword = '$2a$' + storedPassword.substring(4)
+        }
+
+        const isValidPassword = await bcrypt.compare(credentials.password as string, storedPassword)
 
         if (!isValidPassword) {
           return null

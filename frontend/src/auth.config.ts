@@ -7,13 +7,17 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const isProtectedRoute = ["/dashboard", "/admin"].some((route) =>
-        nextUrl.pathname.startsWith(route)
-      )
+      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard")
+      const isOnAdmin = nextUrl.pathname.startsWith("/admin")
 
-      if (isProtectedRoute) {
+      if (isOnAdmin) {
+        if (isLoggedIn && auth.user?.email === 'donugob1@gmail.com') return true
+        return false // Redirect non-admins or unauthenticated to login
+      }
+
+      if (isOnDashboard) {
         if (isLoggedIn) return true
-        return false // Redirect unauthenticated users to login page
+        return false
       }
       return true
     },

@@ -18,17 +18,15 @@ export async function login(formData: FormData) {
     await signIn('credentials', {
       email,
       password,
-      redirect: false,
+      redirectTo: '/dashboard',
     })
   } catch (error: any) {
-    if (error.type === 'CredentialsSignin') {
+    if (error.message?.includes('CredentialsSignin')) {
       return { error: 'Invalid email or password' }
     }
-    return { error: 'Something went wrong.' }
+    // Re-throw redirect errors so Next.js can handle them
+    throw error
   }
-
-  revalidatePath('/', 'layout')
-  redirect('/dashboard')
 }
 
 export async function signup(formData: FormData) {
@@ -66,19 +64,17 @@ export async function signup(formData: FormData) {
     await signIn('credentials', {
       email,
       password,
-      redirect: false,
+      redirectTo: '/dashboard',
     })
 
   } catch (error: any) {
-    return { error: error.message || 'Something went wrong.' }
+    if (error.message?.includes('CredentialsSignin')) {
+      return { error: 'Invalid email or password' }
+    }
+    throw error
   }
-
-  revalidatePath('/', 'layout')
-  redirect('/dashboard')
 }
 
 export async function logout() {
-  await signOut({ redirect: false })
-  revalidatePath('/', 'layout')
-  redirect('/login')
+  await signOut({ redirectTo: '/login' })
 }

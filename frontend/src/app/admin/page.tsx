@@ -69,12 +69,8 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user || user.email !== 'donugob1@gmail.com') {
-        router.push('/dashboard');
-      } else {
-        fetchAdminData();
-      }
+    if (!authLoading && user && user.email === 'donugob1@gmail.com') {
+      fetchAdminData();
     }
   }, [user, authLoading]);
 

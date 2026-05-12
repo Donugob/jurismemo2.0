@@ -68,10 +68,6 @@ export default function Dashboard() {
   const { user, logout, loading: authLoading, refreshProfile } = useAuth();
 
   useEffect(() => {
-    // Normal redirect restored
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
     if (user) {
       setProfileForm({
         firstName: user.firstName || '',
@@ -82,7 +78,7 @@ export default function Dashboard() {
         preferredCourses: user.preferredCourses || ''
       });
     }
-  }, [user, authLoading, router]);
+  }, [user]);
 
   const fetchData = async () => {
     if (!user) return;

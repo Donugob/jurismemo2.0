@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { auth } from '@/../auth'
+import { auth } from '@/auth'
 import { v2 as cloudinary } from 'cloudinary'
 
 cloudinary.config({
