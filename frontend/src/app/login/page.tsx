@@ -6,26 +6,30 @@ import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 
 import { useState } from 'react';
-import { useAuth } from '@/components/AuthContext';
+import { login as loginAction } from '../auth/actions';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
-    try {
-      await login({ username, password });
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
-    } finally {
+    
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    const result = await loginAction(formData);
+    
+    if (result?.error) {
+      setError(result.error);
       setIsSubmitting(false);
     }
+    // Success redirect happens in the action
   };
 
   return (
@@ -60,13 +64,13 @@ export default function Login() {
           
           <form className="space-y-8" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Username</label>
+              <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Email Address</label>
               <input 
-                type="text" 
+                type="email" 
                 className="input-field" 
-                placeholder="Student ID or Username" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="you@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required 
               />
             </div>

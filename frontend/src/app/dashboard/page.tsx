@@ -68,6 +68,7 @@ export default function Dashboard() {
   const { user, logout, loading: authLoading, refreshProfile } = useAuth();
 
   useEffect(() => {
+    // Normal redirect restored
     if (!authLoading && !user) {
       router.push('/login');
     }
@@ -94,8 +95,8 @@ export default function Dashboard() {
       setGrades(gradesData);
       setResources(resourcesData);
       setTasks(tasksData);
-    } catch (err) {
-      console.error('Failed to fetch dashboard data', err);
+    } catch (err: any) {
+      console.error('Dashboard fetch error:', err);
     } finally {
       setIsLoading(false);
     }

@@ -1,15 +1,14 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  
   const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const url = `${BASE_URL}${endpoint}`;
+
+  const response = await fetch(url, {
     ...options,
     headers,
   });
@@ -23,14 +22,6 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 }
 
 export const authApi = {
-  login: (credentials: any) => apiFetch('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-  }),
-  register: (userData: any) => apiFetch('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(userData),
-  }),
   getProfile: () => apiFetch('/auth/profile'),
   updateProfile: (profileData: any) => apiFetch('/auth/profile', {
     method: 'PUT',

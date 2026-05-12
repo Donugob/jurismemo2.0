@@ -47,7 +47,7 @@ export default function Navbar() {
                   <Link href="/dashboard" className="text-xs font-bold text-primary uppercase tracking-widest editorial-link">
                     Dashboard
                   </Link>
-                  {user.id === 1 && (
+                  {user.email === 'donugob1@gmail.com' && (
                     <Link href="/admin" className="text-xs font-bold text-secondary uppercase tracking-widest editorial-link flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 bg-secondary"></span>
                       Admin
@@ -100,7 +100,7 @@ export default function Navbar() {
                     <Link href="/dashboard" onClick={() => setIsOpen(false)} className="w-full text-center py-4 border border-primary text-primary text-xs uppercase tracking-widest font-bold hover:bg-primary hover:text-light transition-colors">
                       Dashboard
                     </Link>
-                    {user.id === 1 && (
+                    {user.email === 'donugob1@gmail.com' && (
                       <Link href="/admin" onClick={() => setIsOpen(false)} className="w-full text-center py-4 border border-secondary text-secondary text-xs uppercase tracking-widest font-bold hover:bg-secondary hover:text-light transition-colors">
                         Admin Panel
                       </Link>

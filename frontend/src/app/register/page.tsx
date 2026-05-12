@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 
 import { useState } from 'react';
-import { useAuth } from '@/components/AuthContext';
+import { signup } from '../auth/actions';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -18,7 +18,6 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,18 +33,20 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
-    try {
-      await register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        level: formData.level
-      });
-    } catch (err: any) {
-      setError(err.message || 'Registration failed');
-    } finally {
+    
+    const data = new FormData();
+    data.append('username', formData.username);
+    data.append('email', formData.email);
+    data.append('password', formData.password);
+    data.append('level', formData.level);
+
+    const result = await signup(data);
+
+    if (result?.error) {
+      setError(result.error);
       setIsSubmitting(false);
     }
+    // Success redirect happens in the action
   };
 
   return (

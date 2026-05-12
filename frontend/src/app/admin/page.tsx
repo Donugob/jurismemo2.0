@@ -70,7 +70,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || user.id !== 1) {
+      if (!user || user.email !== 'donugob1@gmail.com') {
         router.push('/dashboard');
       } else {
         fetchAdminData();
@@ -130,14 +130,12 @@ export default function Admin() {
     formData.append('level', uploadForm.level);
     formData.append('type', uploadForm.type);
 
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/admin/resources/upload`;
+    const apiUrl = '/api/resources'; // Point to the internal API route
 
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+        // No headers needed for multipart/form-data with cookies
         body: formData
       });
 
@@ -223,7 +221,7 @@ export default function Admin() {
     { id: 'news', label: 'Announcements', icon: BookOpen },
   ];
 
-  if (authLoading || (user && user.id !== 1)) {
+  if (authLoading || (user && user.email !== 'donugob1@gmail.com')) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-light font-serif text-primary p-6 text-center">
         <motion.div 
