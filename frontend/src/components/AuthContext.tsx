@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext } from 'react';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
+import { User } from 'next-auth';
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -34,9 +35,9 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children, session }: { children: React.ReactNode, session: any }) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <AuthInternalProvider>
         {children}
       </AuthInternalProvider>

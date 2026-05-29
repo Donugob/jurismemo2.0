@@ -3,42 +3,64 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { motion } from 'framer-motion';
-
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { signup } from '../auth/actions';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function Register() {
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    level: '100L'
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  const nextStep = () => {
+    if (step === 1) {
+      if (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email)) {
+        setError('Please enter a valid email address.');
+        return;
+      }
+      setStep(2);
+    }
+  };
+
+  const prevStep = () => {
+    setStep(1);
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
+    if (step === 1) {
+      nextStep();
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
+      return;
+    }
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters.');
       return;
     }
 
     setIsSubmitting(true);
+    setError('');
     
     const data = new FormData();
-    data.append('username', formData.username);
     data.append('email', formData.email);
     data.append('password', formData.password);
-    data.append('level', formData.level);
+    data.append('confirmPassword', formData.confirmPassword);
 
     const result = await signup(data);
 
@@ -46,127 +68,145 @@ export default function Register() {
       setError(result.error);
       setIsSubmitting(false);
     }
-    // Success redirect happens in the action
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-light border-y-[16px] border-primary">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-24">
+      <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-24 overflow-hidden">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="bg-white p-10 md:p-16 border-y-2 border-primary w-full max-w-2xl relative"
+          className="bg-white p-10 md:p-16 border-y-2 border-primary w-full max-w-xl relative"
         >
           <div className="text-center mb-12">
             <span className="inline-block border border-primary px-3 py-1 text-[10px] uppercase tracking-widest font-bold text-primary mb-6">
-              Registration
+              Step 0{step} / 02
             </span>
-            <h1 className="text-4xl md:text-5xl font-serif tracking-tighter text-primary uppercase leading-none mb-4">Establish <span className="text-secondary italic">Record</span></h1>
-            <p className="text-sm font-sans text-primary/70 tracking-wide">Join the academic archive and access premium materials.</p>
+            <h1 className="text-4xl md:text-5xl font-serif tracking-tighter text-primary uppercase leading-none mb-4">
+              {step === 1 ? (
+                <>Enter Your <span className="text-secondary italic">Email</span></>
+              ) : (
+                <>Secure Your <span className="text-secondary italic">Account</span></>
+              )}
+            </h1>
+            <p className="text-sm font-sans text-primary/70 tracking-wide h-6">
+              {step === 1 ? 'Where should we send your academic updates?' : 'Create a strong password for your archive.'}
+            </p>
           </div>
           
-          {error && (
-            <div className="bg-secondary/10 text-secondary p-4 text-xs uppercase tracking-widest font-bold mb-8 border border-secondary/20 text-center">
-              {error}
-            </div>
-          )}
-          
-          <form className="space-y-8" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Username</label>
-                <input 
-                  type="text" 
-                  name="username"
-                  className="input-field" 
-                  placeholder="Student ID" 
-                  value={formData.username}
-                  onChange={handleChange}
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Email Address</label>
-                <input 
-                  type="email" 
-                  name="email"
-                  className="input-field" 
-                  placeholder="you@example.com" 
-                  value={formData.email}
-                  onChange={handleChange}
-                  required 
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Password</label>
-                <input 
-                  type="password" 
-                  name="password"
-                  className="input-field tracking-[0.3em] font-serif" 
-                  placeholder="••••••••" 
-                  value={formData.password}
-                  onChange={handleChange}
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Confirm Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword"
-                  className="input-field tracking-[0.3em] font-serif" 
-                  placeholder="••••••••" 
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required 
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-primary/10">
-              <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-4">Academic Level</label>
-              <div className="relative">
-                <select 
-                  name="level"
-                  className="w-full border border-primary bg-transparent px-4 py-4 focus:outline-none focus:ring-1 focus:ring-primary transition-colors text-sm font-bold uppercase tracking-widest appearance-none cursor-pointer" 
-                  value={formData.level}
-                  onChange={handleChange}
-                  required
+          <div className="h-12 mb-6">
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div 
+                  key="error"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="bg-secondary/10 text-secondary p-3 text-xs uppercase tracking-widest font-bold border border-secondary/20 text-center"
                 >
-                  <option value="100L">100 Level — Freshman</option>
-                  <option value="200L">200 Level — Sophomore</option>
-                  <option value="300L">300 Level — Junior</option>
-                  <option value="400L">400 Level — Senior</option>
-                  <option value="500L">500 Level — Final Year</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-6 border-l border-primary">
-                  <span className="text-secondary text-lg font-serif">▼</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4 mt-8 pt-6 border-t border-primary/10">
-              <input type="checkbox" id="terms" className="mt-1 w-4 h-4 text-secondary rounded-none border border-primary focus:ring-1 focus:ring-secondary appearance-none checked:bg-secondary cursor-pointer transition-colors" required />
-              <label htmlFor="terms" className="text-xs uppercase tracking-wider text-primary/70 font-medium pt-0.5">
-                I agree to the <a href="#" className="text-primary font-bold hover:text-secondary underline underline-offset-4">Terms of Service</a> and <a href="#" className="text-primary font-bold hover:text-secondary underline underline-offset-4">Privacy Policy</a>
-              </label>
-            </div>
-            
-            <button 
-              type="submit" 
-              className="btn-primary w-full py-5 text-xs uppercase tracking-[0.2em] font-bold mt-10 disabled:opacity-70"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Establishing Record...' : 'Complete Registration'}
-            </button>
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          <form className="relative min-h-[220px]" onSubmit={handleSubmit}>
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute inset-0 flex flex-col justify-between"
+                >
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-4">Email Address</label>
+                    <input 
+                      type="email" 
+                      name="email"
+                      className="w-full border-b-2 border-primary/20 bg-transparent py-4 text-xl md:text-2xl font-serif tracking-wide focus:outline-none focus:border-primary transition-colors placeholder:text-primary/20" 
+                      placeholder="scholar@example.com" 
+                      value={formData.email}
+                      onChange={handleChange}
+                      required 
+                      autoFocus
+                    />
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={nextStep}
+                    className="btn-primary w-full py-5 text-xs uppercase tracking-[0.2em] font-bold flex items-center justify-center gap-3 group mt-12"
+                  >
+                    Continue
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </motion.div>
+              )}
+
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute inset-0 flex flex-col justify-between"
+                >
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Password</label>
+                      <input 
+                        type="password" 
+                        name="password"
+                        className="w-full border-b-2 border-primary/20 bg-transparent py-3 text-2xl tracking-[0.3em] font-serif focus:outline-none focus:border-primary transition-colors placeholder:text-primary/20 placeholder:tracking-normal" 
+                        placeholder="••••••••" 
+                        value={formData.password}
+                        onChange={handleChange}
+                        required 
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest font-bold text-primary mb-2">Confirm Password</label>
+                      <input 
+                        type="password" 
+                        name="confirmPassword"
+                        className="w-full border-b-2 border-primary/20 bg-transparent py-3 text-2xl tracking-[0.3em] font-serif focus:outline-none focus:border-primary transition-colors placeholder:text-primary/20 placeholder:tracking-normal" 
+                        placeholder="••••••••" 
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4 mt-8">
+                    <button 
+                      type="button" 
+                      onClick={prevStep}
+                      className="py-5 px-6 border border-primary/20 text-primary hover:bg-light transition-colors flex items-center justify-center"
+                      disabled={isSubmitting}
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn-primary flex-1 py-5 text-xs uppercase tracking-[0.2em] font-bold disabled:opacity-70"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Establishing Record...' : 'Complete Registration'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </form>
           
-          <div className="mt-12 text-center">
+          <div className="mt-16 pt-8 border-t border-primary/10 text-center">
             <p className="text-xs uppercase tracking-widest text-primary/60 font-medium">
               Already have an account? <Link href="/login" className="text-primary font-bold hover:text-secondary transition-colors underline underline-offset-4 ml-1">Log In</Link>
             </p>

@@ -1,8 +1,9 @@
-import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-import prisma from "./lib/prisma"
-import { authConfig } from "./auth.config"
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import prisma from "@/lib/prisma";
+import { authConfig } from "./auth.config";
+import { loginSchema } from "@/lib/zod";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -14,63 +15,67 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
+        // Validate credentials using Zod
+        const parsedCredentials = loginSchema.safeParse(credentials);
+        
+        if (!parsedCredentials.success) {
+          return null;
         }
 
-        const identifier = credentials.email as string
+        const { email, password } = parsedCredentials.data;
 
+        // Fetch user from database
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { email: identifier },
-              { username: identifier }
+              { email: email },
+              { username: email } // Allow login with username or email
             ]
           }
-        })
+        });
 
         if (!user || !user.password) {
-          return null
+          return null;
         }
 
-        // Support for legacy $2y$ hashes (PHP-style) by treating them as $2a$ for bcryptjs
-        let storedPassword = user.password
+        // Verify password using modern bcryptjs
+        // If legacy $2y$ is truly needed for existing DBs, keep it, but it's best to standardise on $2a$.
+        let storedPassword = user.password;
         if (storedPassword.startsWith('$2y$')) {
-          storedPassword = '$2a$' + storedPassword.substring(4)
+          storedPassword = '$2a$' + storedPassword.substring(4);
         }
 
-        const isValidPassword = await bcrypt.compare(credentials.password as string, storedPassword)
+        const isValidPassword = await bcrypt.compare(password, storedPassword);
 
         if (!isValidPassword) {
-          return null
+          return null;
         }
 
         return {
           id: user.id.toString(),
-          name: user.username,
+          username: user.username,
           email: user.email,
-          level: user.level,
-        }
+          level: user.level || "100L",
+        };
       }
     })
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.username = user.name
-        token.level = (user as any).level
+        token.id = user.id;
+        token.username = user.username;
+        token.level = user.level;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string
-        (session.user as any).username = token.username as string
-        (session.user as any).level = token.level as string
+        session.user.id = token.id as string;
+        session.user.username = token.username as string;
+        session.user.level = token.level as string;
       }
-      return session
+      return session;
     }
   },
-  secret: process.env.AUTH_SECRET || "fallback_secret_key_123",
-})
+});

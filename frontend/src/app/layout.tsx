@@ -70,16 +70,19 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from '@/components/AuthContext';
+import { auth } from '@/auth';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+  
   return (
     <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
       <body className={`font-sans antialiased text-primary bg-light flex flex-col min-h-screen`}>
-        <AuthProvider>
+        <AuthProvider session={session}>
           {children}
         </AuthProvider>
       </body>

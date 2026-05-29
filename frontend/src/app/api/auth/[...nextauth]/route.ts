@@ -1,12 +1,3 @@
-import { handlers } from "@/auth"
-import { NextRequest } from "next/server"
+import { handlers } from "@/auth";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<any> }) {
-  await params
-  return handlers.GET(req)
-}
-
-export async function POST(req: NextRequest, { params }: { params: Promise<any> }) {
-  await params
-  return handlers.POST(req)
-}
+export const { GET, POST } = handlers;

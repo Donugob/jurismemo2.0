@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -70,7 +71,7 @@ export default function Home() {
                       "https://i.postimg.cc/8PVynRkK/zane.jpg"
                     ].map((url, i) => (
                       <div key={i} className={`w-12 h-12 rounded-none border border-light bg-gray-200 flex items-center justify-center overflow-hidden grayscale hover:grayscale-0 transition-all duration-500`}>
-                        <img src={url} alt="Student" className="w-full h-full object-cover" />
+                        <Image src={url} alt="Student" width={48} height={48} className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
@@ -94,10 +95,13 @@ export default function Home() {
             viewport={{ once: true }}
             className="absolute inset-0 grayscale-[50%] hover:grayscale-0 transition-all duration-1000"
           >
-            <img
+            <Image
               src="https://i.postimg.cc/xj7PWK0G/Gemini-Generated-Image-obxivfobxivfobxi.webp"
               alt="Law Library"
-              className="w-full h-full object-cover"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-primary/30 mix-blend-multiply"></div>
           </motion.div>

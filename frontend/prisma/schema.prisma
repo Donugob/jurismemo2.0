@@ -25,6 +25,8 @@ model User {
   tasks           Task[]
   electiveChoices ElectiveChoice[]
   resources       Resource[] 
+
+  @@index([level])
 }
 
 model Course {
@@ -40,6 +42,7 @@ model Course {
   grades         Grade[]
 
   @@unique([course_code, level, semester])
+  @@index([level, semester])
 }
 
 model Grade {
@@ -52,6 +55,9 @@ model Grade {
 
   user        User     @relation(fields: [user_id], references: [id])
   course      Course   @relation(fields: [course_code, level, semester], references: [course_code, level, semester])
+
+  @@index([user_id])
+  @@index([course_code, level, semester])
 }
 
 model ElectiveChoice {
@@ -63,6 +69,9 @@ model ElectiveChoice {
   chosen_course_code String
 
   user               User     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([level, semester])
 }
 
 model Task {
@@ -74,6 +83,9 @@ model Task {
   createdAt  DateTime @default(now())
 
   user       User     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([status])
 }
 
 model Resource {
@@ -87,6 +99,9 @@ model Resource {
   upload_date   DateTime @default(now())
 
   uploader      User     @relation(fields: [uploaded_by], references: [id])
+
+  @@index([uploaded_by])
+  @@index([level])
 }
 
 model News {
@@ -96,4 +111,7 @@ model News {
   category    String   // 'Blog', 'News', 'Exam'
   level       String?  // 'All', '100L', etc.
   createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@index([level])
 }

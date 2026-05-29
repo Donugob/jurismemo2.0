@@ -4,12 +4,22 @@ import { Pool } from 'pg'
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL
-  const pool = new Pool({ connectionString })
+  
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not set in environment variables')
+  }
+
+  const pool = new Pool({ 
+    connectionString,
+    max: 2, // Crucial for Serverless/Supabase free tier to prevent connection hanging
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
+    allowExitOnIdle: true,
+  })
   const adapter = new PrismaPg(pool)
   
   return new PrismaClient({ 
     adapter,
-    log: ['error', 'warn']
   })
 }
 
