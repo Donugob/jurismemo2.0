@@ -27,7 +27,7 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function login(formData: FormData) {
-  const ip = headers().get('x-forwarded-for') || 'unknown';
+  const ip = (await headers()).get('x-forwarded-for') || 'unknown';
   if (!checkRateLimit(ip)) {
     return { error: 'Too many requests. Please try again in a minute.' };
   }
@@ -64,7 +64,7 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-  const ip = headers().get('x-forwarded-for') || 'unknown';
+  const ip = (await headers()).get('x-forwarded-for') || 'unknown';
   if (!checkRateLimit(ip)) {
     return { error: 'Too many requests. Please try again in a minute.' };
   }
