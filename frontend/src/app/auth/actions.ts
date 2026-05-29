@@ -6,7 +6,7 @@ import { AuthError } from 'next-auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { loginSchema, registerSchema } from '@/lib/zod';
-import { isRedirectError } from 'next/dist/client/components/redirect';
+
 import { headers } from 'next/headers';
 
 // Zero-Cost In-Memory Rate Limiter (Protects individual Vercel instances from spam)
