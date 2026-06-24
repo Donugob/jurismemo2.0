@@ -33,17 +33,13 @@ export async function POST(req: Request) {
 
     const { course_code, grade, level, semester } = await req.json()
     
-    let course = await prisma.course.findUnique({ 
+    await prisma.course.upsert({
       where: { 
         course_code_level_semester: { course_code, level, semester }
-      } 
+      },
+      update: {},
+      create: { course_code, title: `Course ${course_code}`, level, semester, credit_units: 3 }
     })
-    
-    if (!course) {
-      course = await prisma.course.create({
-        data: { course_code, title: `Course ${course_code}`, level, semester, credit_units: 3 }
-      })
-    }
 
     const existingGrade = await prisma.grade.findFirst({
       where: { user_id: Number(session.user.id), course_code, level, semester }

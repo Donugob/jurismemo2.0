@@ -119,30 +119,51 @@ export default function Admin() {
     if (!uploadForm.file) return showToast('Please select a file', 'info');
     
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', uploadForm.file);
-    formData.append('title', uploadForm.title);
-    formData.append('description', uploadForm.description);
-    formData.append('level', uploadForm.level);
-    formData.append('type', uploadForm.type);
-
-    const apiUrl = '/api/resources'; // Point to the internal API route
 
     try {
-      const response = await fetch(apiUrl, {
+      // 1. Get Upload Signature
+      const sigResponse = await fetch('/api/resources/upload-signature');
+      if (!sigResponse.ok) throw new Error('Failed to get upload signature');
+      const { signature, timestamp, cloudName, apiKey } = await sigResponse.json();
+
+      // 2. Upload directly to Cloudinary
+      const cloudinaryFormData = new FormData();
+      cloudinaryFormData.append('file', uploadForm.file);
+      cloudinaryFormData.append('api_key', apiKey);
+      cloudinaryFormData.append('timestamp', timestamp);
+      cloudinaryFormData.append('signature', signature);
+      cloudinaryFormData.append('folder', 'jurismemo_resources');
+
+      const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
         method: 'POST',
-        // No headers needed for multipart/form-data with cookies
-        body: formData
+        body: cloudinaryFormData
+      });
+
+      if (!cloudinaryRes.ok) throw new Error('Cloudinary upload failed');
+      const cloudinaryData = await cloudinaryRes.json();
+      const secureUrl = cloudinaryData.secure_url;
+
+      // 3. Save Resource record to DB
+      const dbResponse = await fetch('/api/resources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: uploadForm.title,
+          description: uploadForm.description,
+          level: uploadForm.level,
+          resource_type: uploadForm.type,
+          file_path: secureUrl
+        })
       });
 
       let data;
       try {
-        data = await response.json();
+        data = await dbResponse.json();
       } catch (e) {
-        data = { error: await response.text() || 'Unknown server error' };
+        data = { error: await dbResponse.text() || 'Unknown server error' };
       }
       
-      if (!response.ok) throw new Error(data.error || 'Upload failed');
+      if (!dbResponse.ok) throw new Error(data.error || 'Database save failed');
       
       showToast('Resource uploaded successfully!');
       setShowUploadModal(false);

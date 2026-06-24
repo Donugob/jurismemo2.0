@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+export const revalidate = 60;
 import prisma from '@/lib/prisma'
 import { auth } from '@/auth'
 import { v2 as cloudinary } from 'cloudinary'
@@ -9,7 +10,13 @@ cloudinary.config({
 
 export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const take = Number(searchParams.get('take')) || 50
+    const skip = Number(searchParams.get('skip')) || 0
+
     const resources = await prisma.resource.findMany({
+      take,
+      skip,
       orderBy: { upload_date: 'desc' }
     })
     return NextResponse.json(resources)
@@ -23,29 +30,17 @@ export async function POST(req: Request) {
     const session = await auth()
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const formData = await req.formData()
-    const file = formData.get('file') as File
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const resource_type = formData.get('resource_type') as string
-    const level = formData.get('level') as string
+    const { title, description, resource_type, level, file_path } = await req.json()
 
-    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-
-    const buffer = await file.arrayBuffer()
-    const base64Data = Buffer.from(buffer).toString('base64')
-    const fileUri = `data:${file.type};base64,${base64Data}`
-
-    const uploadResponse = await cloudinary.uploader.upload(fileUri, {
-      folder: 'jurismemo_resources',
-      resource_type: 'auto'
-    })
+    if (!file_path || !title) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
 
     const resource = await prisma.resource.create({
       data: {
         title,
         description,
-        file_path: uploadResponse.secure_url,
+        file_path,
         resource_type,
         level,
         uploaded_by: Number(session.user.id)
@@ -54,7 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(resource, { status: 201 })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Failed to upload resource' }, { status: 500 })
+    console.error('Resource create error:', error)
+    return NextResponse.json({ error: 'Failed to create resource' }, { status: 500 })
   }
 }
