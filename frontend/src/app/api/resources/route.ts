@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-export const revalidate = 60;
 import prisma from '@/lib/prisma'
 import { auth } from '@/auth'
 import { v2 as cloudinary } from 'cloudinary'

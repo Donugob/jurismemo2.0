@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-export const revalidate = 60;
 import prisma from '@/lib/prisma'
 
 export async function GET(req: Request) {

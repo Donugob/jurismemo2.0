@@ -11,7 +11,7 @@ const prismaClientSingleton = () => {
 
   const pool = new Pool({ 
     connectionString,
-    max: 1, // Crucial for Serverless/Supabase free tier to prevent connection hanging
+    max: 3, // Prevent connection deadlocks on concurrent Promise.all queries
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 10000,
     allowExitOnIdle: true,
