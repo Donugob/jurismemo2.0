@@ -587,8 +587,8 @@ export default function Admin() {
                                   transition={{ delay: idx * 0.1 }}
                                   className="flex items-start gap-4 p-5 md:p-6 bg-primary/5 border border-primary/5 group rounded-sm"
                                 >
-                                  <div className={`mt-1.5 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ring-2 md:ring-4 ring-offset-2 md:ring-offset-4 ring-offset-light ${t.is_completed ? 'bg-secondary ring-secondary/10' : 'bg-primary/20 ring-primary/5'}`} />
-                                  <span className={`font-serif text-base md:text-lg leading-tight ${t.is_completed ? 'line-through text-primary/30 italic' : 'text-primary/70'}`}>
+                                  <div className={`mt-1.5 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ring-2 md:ring-4 ring-offset-2 md:ring-offset-4 ring-offset-light ${t.status === 'completed' ? 'bg-secondary ring-secondary/10' : 'bg-primary/20 ring-primary/5'}`} />
+                                  <span className={`font-serif text-base md:text-lg leading-tight ${t.status === 'completed' ? 'line-through text-primary/30 italic' : 'text-primary/70'}`}>
                                     {t.task}
                                   </span>
                                 </motion.div>
