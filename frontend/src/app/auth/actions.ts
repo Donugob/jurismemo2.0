@@ -190,7 +190,7 @@ export async function requestPasswordReset(formData: FormData) {
     }
 
     await resend.emails.send({
-      from: 'JurisMemo <onboarding@resend.dev>', // Use a verified domain here in production
+      from: process.env.RESEND_FROM_EMAIL || 'JurisMemo <onboarding@resend.dev>',
       to: email,
       subject: 'Reset your password for JurisMemo',
       html: `
