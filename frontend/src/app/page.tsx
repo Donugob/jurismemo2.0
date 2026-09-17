@@ -145,8 +145,8 @@ export default function Home() {
                   },
                   {
                     num: "IV.",
-                    title: "Case Summaries",
-                    desc: "Condensations of landmark Supreme Court decisions, focusing on critical ratios and essential obiter dicta.",
+                    title: "CGPA Calculator & Tracker",
+                    desc: "Record your results and accurately calculate your CGPA. Specifically tailored to the IMSU Faculty of Law grading system and course structures.",
                   }
                 ].map((feature, i) => (
                   <motion.div

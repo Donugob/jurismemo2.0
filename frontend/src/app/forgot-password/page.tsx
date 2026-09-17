@@ -4,32 +4,34 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
-
 import { useState } from 'react';
-import { login as loginAction } from '../auth/actions';
+import { requestPasswordReset } from '../auth/actions';
 
-export default function Login() {
+export default function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setIsSubmitting(true);
     
     const formData = new FormData();
     formData.append('email', email);
-    formData.append('password', password);
 
-    const result = await loginAction(formData);
+    const result = await requestPasswordReset(formData);
     
     if (result?.error) {
       setError(result.error);
-      setIsSubmitting(false);
+    } else if (result?.success) {
+      setMessage(result.success);
+      setEmail('');
     }
-    // Success redirect happens in the action
+    
+    setIsSubmitting(false);
   };
 
   return (
@@ -50,15 +52,21 @@ export default function Login() {
 
           <div className="text-center mb-12">
             <span className="inline-block border border-primary px-3 py-1 text-[10px] uppercase tracking-widest font-bold text-primary mb-6">
-              Authentication
+              Recovery
             </span>
-            <h1 className="text-4xl md:text-5xl font-serif tracking-tighter text-primary uppercase leading-none mb-4">Welcome <span className="text-secondary italic">Back</span></h1>
-            <p className="text-sm font-sans text-primary/70 tracking-wide">Enter your credentials to access the archive.</p>
+            <h1 className="text-4xl md:text-5xl font-serif tracking-tighter text-primary uppercase leading-none mb-4">Reset <span className="text-secondary italic">Access</span></h1>
+            <p className="text-sm font-sans text-primary/70 tracking-wide">Enter your email address to receive a recovery link.</p>
           </div>
           
           {error && (
             <div className="bg-secondary/10 text-secondary p-4 text-xs uppercase tracking-widest font-bold mb-8 border border-secondary/20 text-center">
               {error}
+            </div>
+          )}
+          
+          {message && (
+            <div className="bg-green-100 text-green-800 p-4 text-xs uppercase tracking-widest font-bold mb-8 border border-green-200 text-center">
+              {message}
             </div>
           )}
           
@@ -75,33 +83,18 @@ export default function Login() {
               />
             </div>
             
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs uppercase tracking-widest font-bold text-primary">Password</label>
-                <Link href="/forgot-password" className="text-[10px] uppercase tracking-widest text-secondary hover:text-primary transition-colors">Forgot?</Link>
-              </div>
-              <input 
-                type="password" 
-                className="input-field" 
-                placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required 
-              />
-            </div>
-            
             <button 
               type="submit" 
               className="btn-primary w-full py-4 text-xs uppercase tracking-[0.2em] font-bold mt-8 disabled:opacity-70"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Authenticating...' : 'Sign In'}
+              {isSubmitting ? 'Sending...' : 'Send Recovery Link'}
             </button>
           </form>
           
           <div className="mt-12 pt-8 border-t border-primary/10 text-center">
             <p className="text-xs uppercase tracking-widest text-primary/60 font-medium">
-              Not yet a scholar? <Link href="/register" className="text-primary font-bold hover:text-secondary transition-colors underline underline-offset-4 ml-1">Establish Record</Link>
+              Remembered? <Link href="/login" className="text-primary font-bold hover:text-secondary transition-colors underline underline-offset-4 ml-1">Sign In</Link>
             </p>
           </div>
         </motion.div>
